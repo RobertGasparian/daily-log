@@ -56,10 +56,16 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
 
+    //Room
+    ksp(libs.androidx.room.compile)
+    implementation(libs.androidx.room.ktx)
+
     testImplementation(libs.junit)
+    testImplementation(libs.androidx.room.testing)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
