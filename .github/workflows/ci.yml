@@ -61,7 +61,13 @@ jobs:
       # Runs ktlint across the project, printing violations to the log and generating Checkstyle XML reports
       # IMPORTANT: continue-on-error so later steps (reviewdog) still run even if there are violations
       - name: Run ktlint (generate checkstyle)
-        run: ./gradlew ktlintCheck --console=plain
+        run: |
+          ./gradlew ktlintCheck --console=plain || EXIT_CODE=$?
+          # If ktlint failed, mark neutral exit (78) instead of success (0)
+          if [ "${EXIT_CODE}" != "" ]; then
+            echo "Ktlint found issues."
+            exit 78  # Neutral — will show as ⚪ in the checks list
+          fi
         continue-on-error: true  # allow job to continue when ktlint finds issues
 
       # Uploads the ktlint XML report(s) as an artifact for later download/debugging (optional)
