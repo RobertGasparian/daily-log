@@ -9,6 +9,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Allow the workflow to write PR comments/annotations
+permissions:
+  contents: read
+  pull-requests: write
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -59,16 +64,22 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       # Runs ktlint across the project, printing violations to the log and generating Checkstyle XML reports
-      # IMPORTANT: continue-on-error so later steps (reviewdog) still run even if there are violations
+      # On PUSH: mark step as NEUTRAL (78) if violations -> not green; job continues for reviewdog.
+      # On PR:   keep step green so reviewdog can run, and fail later after comments.
       - name: Run ktlint (generate checkstyle)
         run: |
           ./gradlew ktlintCheck --console=plain || EXIT_CODE=$?
-          # If ktlint failed, mark neutral exit (78) instead of success (0)
-          if [ "${EXIT_CODE}" != "" ]; then
+          if [ -n "${EXIT_CODE}" ]; then
             echo "Ktlint found issues."
-            exit 78  # Neutral — will show as ⚪ in the checks list
+            if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+              # Neutral — will show as ⚪ in the checks list
+              exit 78
+            else
+              # For PRs keep going; reviewdog will comment and we'll fail later
+              exit 0
+            fi
           fi
-        continue-on-error: true  # allow job to continue when ktlint finds issues
+        continue-on-error: true  # allow later steps (reviewdog) to run regardless
 
       # Uploads the ktlint XML report(s) as an artifact for later download/debugging (optional)
       - name: Upload ktlint report as artifact
@@ -77,18 +88,15 @@ jobs:
           name: ktlint-report
           path: "**/build/reports/ktlint/**/*.xml"
 
-      # Installs reviewdog CLI (used to convert ktlint's Checkstyle XML into inline PR comments)
+      # Installs reviewdog CLI (used to convert ktlint's Checkstyle XML into inline PR comments or Checks annotations)
       - name: Install reviewdog
         run: |
           curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s -- -b "$HOME/bin"
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
-      # Annotates pull requests with inline comments based on the ktlint Checkstyle reports.
-      # Works for both pull_request runs and push runs that belong to an open PR.
-      - name: Reviewdog (annotate PR)
-        # If you only want comments on actual PR runs, you can simplify this to:
-        # if: ${{ github.event_name == 'pull_request' }}
-        if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
+      # Annotates pull requests with inline comments based on the ktlint Checkstyle reports (PR runs only)
+      - name: Reviewdog (PR inline comments)
+        if: ${{ github.event_name == 'pull_request' }}
         env:
           # GitHub token needed for reviewdog to post comments (provided automatically by Actions)
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -99,10 +107,7 @@ jobs:
             exit 0
           fi
 
-          # Stream all XMLs into reviewdog without storing NUL-separated paths in a shell var.
-          # - reporter=github-pr-review -> inline PR review comments
-          # - filter-mode=diff_context  -> only comment on changed lines
-          # - level=error               -> mark as error in the PR UI
+          # Stream all XMLs into reviewdog for inline PR comments
           find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
             | xargs -0 -r cat \
             | reviewdog \
@@ -112,10 +117,32 @@ jobs:
                 -filter-mode=diff_context \
                 -level=error
 
-          # (Optional) If you want the job to FAIL when violations exist, uncomment below.
-          # This avoids deprecated '-fail-on-error' and works with github-pr-review.
-           if find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
-                | xargs -0 -r grep -q "<error " ; then
-             echo "ktlint violations found."
-             exit 1
-           fi
+      # Annotates push runs in the Checks tab (no PR context)
+      - name: Reviewdog (Checks annotations on push)
+        if: ${{ github.event_name == 'push' }}
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! find . -type f -path "*/build/reports/ktlint/*/*.xml" | grep -q . ; then
+            echo "No ktlint Checkstyle reports found. Did ktlintCheck run?"
+            exit 0
+          fi
+
+          # Use github-check reporter so results show under the job's 'Annotations' in the Checks tab
+          find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
+            | xargs -0 -r cat \
+            | reviewdog \
+                -f=checkstyle \
+                -name="ktlint" \
+                -reporter=github-check \
+                -filter-mode=diff_context \
+                -level=error
+
+      # Fail the PR job if ktlint violations exist (AFTER comments are posted).
+      - name: Fail job if violations (PR only)
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          if find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 | xargs -0 -r grep -q "<error " ; then
+            echo "ktlint violations found."
+            exit 1
+          fi
