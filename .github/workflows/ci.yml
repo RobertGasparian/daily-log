@@ -91,6 +91,7 @@ jobs:
       # (Debug) Show which reports were generated + current event context
       - name: List generated ktlint reports
         run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           echo "Searching for ktlint XML reports…"
           find . -type f -path "*/build/reports/ktlint/*/*.xml" -print || true
       - name: Show event + PR repo info
@@ -106,6 +107,7 @@ jobs:
           echo "$HOME/bin" >> "$GITHUB_PATH"
 
       # Annotates pull requests with inline comments based on the ktlint Checkstyle reports (PR runs only)
+      # Also normalizes absolute file paths in XML to repo-relative so reviewdog matches the diff.
       - name: Reviewdog (PR inline comments)
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
@@ -119,18 +121,30 @@ jobs:
             exit 0
           fi
 
-          # Stream all XMLs into reviewdog for inline PR comments on changed lines
-          find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
-            | xargs -0 -r cat \
-            | reviewdog \
-                -f=checkstyle \
-                -name="ktlint" \
-                -reporter=github-pr-review \
-                -filter-mode=diff_context \
-                -level=error \
-                -tee
+          # Helper to normalize absolute paths in Checkstyle XML: name="$GITHUB_WORKSPACE/..." -> name="..."
+          normxml() { sed "s|name=\"${GITHUB_WORKSPACE}/|name=\"|g" "$1"; }
 
-      # Annotates push runs (and forked PRs) in the Checks tab (no inline comments)
+          set -o pipefail
+          TMP_OUT="$(mktemp)"
+
+          # Stream normalized XML into reviewdog for inline PR comments on changed lines
+          while IFS= read -r -d '' f; do
+            normxml "$f"
+          done < <(find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0) \
+          | reviewdog \
+              -f=checkstyle \
+              -name="ktlint" \
+              -reporter=github-pr-review \
+              -filter-mode=diff_context \
+              -level=error \
+              -tee | tee "$TMP_OUT"
+
+          # If nothing was annotated inline (likely issues outside the diff), set fallback flag
+          if ! grep -E "reporter=github-pr-review.+(error|warning|info|issues) found" "$TMP_OUT" >/dev/null 2>&1 ; then
+            echo "FALLBACK_PR_CHECK=true" >> "$GITHUB_ENV"
+          fi
+
+      # Annotates push runs (and forked PRs) in the Checks tab (no inline comments) — with path normalization
       - name: Reviewdog (Checks annotations)
         if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
         env:
@@ -142,18 +156,38 @@ jobs:
             exit 0
           fi
 
-          # Use github-check reporter so results show under the job's 'Annotations' in the Checks tab
-          find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
-            | xargs -0 -r cat \
-            | reviewdog \
-                -f=checkstyle \
-                -name="ktlint" \
-                -reporter=github-check \
-                -filter-mode=diff_context \
-                -level=error \
-                -tee
+          normxml() { sed "s|name=\"${GITHUB_WORKSPACE}/|name=\"|g" "$1"; }
+          while IFS= read -r -d '' f; do
+            normxml "$f"
+          done < <(find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0) \
+          | reviewdog \
+              -f=checkstyle \
+              -name="ktlint" \
+              -reporter=github-check \
+              -filter-mode=diff_context \
+              -level=error \
+              -tee
 
-      # Fail the PR job if ktlint violations exist (AFTER comments are posted).
+      # Fallback for PRs: always show results in Checks tab (even if violations are outside the diff)
+      - name: Reviewdog (PR Checks fallback)
+        if: ${{ github.event_name == 'pull_request' && env.FALLBACK_PR_CHECK == 'true' }}
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWDOG_DEBUG: "true"
+        run: |
+          normxml() { sed "s|name=\"${GITHUB_WORKSPACE}/|name=\"|g" "$1"; }
+          while IFS= read -r -d '' f; do
+            normxml "$f"
+          done < <(find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0) \
+          | reviewdog \
+              -f=checkstyle \
+              -name="ktlint" \
+              -reporter=github-check \
+              -filter-mode=file \
+              -level=error \
+              -tee
+
+      # Fail the PR job if ktlint violations exist (AFTER comments/annotations are posted).
       - name: Fail job if violations (PR only, same-repo)
         if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
