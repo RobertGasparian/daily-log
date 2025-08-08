@@ -88,6 +88,17 @@ jobs:
           name: ktlint-report
           path: "**/build/reports/ktlint/**/*.xml"
 
+      # (Debug) Show which reports were generated + current event context
+      - name: List generated ktlint reports
+        run: |
+          echo "Searching for ktlint XML reports…"
+          find . -type f -path "*/build/reports/ktlint/*/*.xml" -print || true
+      - name: Show event + PR repo info
+        run: |
+          echo "EVENT: $GITHUB_EVENT_NAME"
+          echo "HEAD REPO: ${{ github.event.pull_request.head.repo.full_name }}"
+          echo "THIS REPO: ${{ github.repository }}"
+
       # Installs reviewdog CLI (used to convert ktlint's Checkstyle XML into inline PR comments or Checks annotations)
       - name: Install reviewdog
         run: |
@@ -96,10 +107,11 @@ jobs:
 
       # Annotates pull requests with inline comments based on the ktlint Checkstyle reports (PR runs only)
       - name: Reviewdog (PR inline comments)
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         env:
           # GitHub token needed for reviewdog to post comments (provided automatically by Actions)
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWDOG_DEBUG: "true"
         run: |
           # Ensure we have ktlint Checkstyle reports
           if ! find . -type f -path "*/build/reports/ktlint/*/*.xml" | grep -q . ; then
@@ -107,7 +119,7 @@ jobs:
             exit 0
           fi
 
-          # Stream all XMLs into reviewdog for inline PR comments
+          # Stream all XMLs into reviewdog for inline PR comments on changed lines
           find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 \
             | xargs -0 -r cat \
             | reviewdog \
@@ -115,13 +127,15 @@ jobs:
                 -name="ktlint" \
                 -reporter=github-pr-review \
                 -filter-mode=diff_context \
-                -level=error
+                -level=error \
+                -tee
 
-      # Annotates push runs in the Checks tab (no PR context)
-      - name: Reviewdog (Checks annotations on push)
-        if: ${{ github.event_name == 'push' }}
+      # Annotates push runs (and forked PRs) in the Checks tab (no inline comments)
+      - name: Reviewdog (Checks annotations)
+        if: ${{ github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) }}
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWDOG_DEBUG: "true"
         run: |
           if ! find . -type f -path "*/build/reports/ktlint/*/*.xml" | grep -q . ; then
             echo "No ktlint Checkstyle reports found. Did ktlintCheck run?"
@@ -136,11 +150,12 @@ jobs:
                 -name="ktlint" \
                 -reporter=github-check \
                 -filter-mode=diff_context \
-                -level=error
+                -level=error \
+                -tee
 
       # Fail the PR job if ktlint violations exist (AFTER comments are posted).
-      - name: Fail job if violations (PR only)
-        if: ${{ github.event_name == 'pull_request' }}
+      - name: Fail job if violations (PR only, same-repo)
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository }}
         run: |
           if find . -type f -path "*/build/reports/ktlint/*/*.xml" -print0 | xargs -0 -r grep -q "<error " ; then
             echo "ktlint violations found."
