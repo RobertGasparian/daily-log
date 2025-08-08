@@ -15,12 +15,3 @@ ktlint_standard_class-signature = disabled
 ktlint_standard_condition-wrapping = disabled
 ktlint_standard_function-signature = disabled
 ktlint_standard_expression-operand-wrapping = disabled
-
-[/**/QueueListenerBridge*.{kt,kts}]
-ktlint_standard_package-name = disabled
-
-[/**/AddressError*.{kt,kts}]
-ktlint_standard_enum-entry-name-case = disabled
-
-[/**/CounterTestCommon*.{kt,kts}]
-ktlint_standard_function-naming = disabled
