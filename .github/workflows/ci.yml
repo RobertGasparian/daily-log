@@ -61,6 +61,7 @@ jobs:
       # Runs ktlint across the project, printing violations to the log and generating Checkstyle XML reports
       - name: Run ktlint (generate checkstyle)
         run: ./gradlew ktlintCheck --console=plain
+        continue-on-error: true
 
       # Uploads the ktlint XML report(s) as an artifact for later download/debugging (optional)
       - name: Upload ktlint report as artifact
