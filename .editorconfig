@@ -1,0 +1,26 @@
+[*.{kt,kts}]
+indent_size = 4
+ktlint_code_style = intellij_idea
+ktlint_standard_import-ordering = disabled
+ktlint_standard_final-newline = disabled
+ktlint_standard_no-consecutive-blank-lines = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_trailing-comma-on-call-site = disabled
+ktlint_standard_trailing-comma-on-declaration-site = disabled
+ktlint_standard_property-naming = disabled
+ktlint_function_naming_ignore_when_annotated_with = Composable
+ktlint_standard_backing-property-naming = disabled
+ktlint_standard_function-expression-body = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_condition-wrapping = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_expression-operand-wrapping = disabled
+
+[/**/QueueListenerBridge*.{kt,kts}]
+ktlint_standard_package-name = disabled
+
+[/**/AddressError*.{kt,kts}]
+ktlint_standard_enum-entry-name-case = disabled
+
+[/**/CounterTestCommon*.{kt,kts}]
+ktlint_standard_function-naming = disabled

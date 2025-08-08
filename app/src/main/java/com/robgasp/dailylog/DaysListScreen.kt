@@ -40,7 +40,6 @@ fun DaysListScreen(days: List<Pair<String, Color>>, modifier: Modifier = Modifie
 
 @Composable
 private fun Day(date: String, color: Color, modifier: Modifier = Modifier) {
-
     ElevatedCard(
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
         modifier = modifier
@@ -72,17 +71,16 @@ private fun Day(date: String, color: Color, modifier: Modifier = Modifier) {
                     textAlign = TextAlign.End,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.align(Alignment.End)
-                    )
+                )
                 CircleIndicator(
                     color = color,
                     size = 16.dp,
                     modifier = modifier
-                    .align(Alignment.End))
+                        .align(Alignment.End)
+                )
             }
-
         }
     }
-
 }
 
 @Composable

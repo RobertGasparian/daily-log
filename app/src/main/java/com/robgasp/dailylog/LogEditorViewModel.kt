@@ -11,7 +11,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LogEditorViewModel @Inject constructor(
     private val dateProvider: DateProvider
-): ViewModel() {
+) : ViewModel() {
 
     init {
         Log.d("date_check", dateProvider.currentDate().toString())
@@ -22,16 +22,11 @@ class LogEditorViewModel @Inject constructor(
     }
 
     fun onTitleChange(title: String) {
-
     }
 
     fun onDescriptionChange(description: String) {
-
     }
 
     fun onDateChange(date: Date) {
-
     }
-
-
 }

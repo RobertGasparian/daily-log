@@ -81,7 +81,8 @@ fun MainScreen(list: List<Pair<String, Color>>) {
                     list,
                 )
             }
-        })
+        }
+    )
 }
 
 val STATIC_COLORS_TEMP = arrayOf(

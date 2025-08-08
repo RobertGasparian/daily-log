@@ -22,7 +22,6 @@ class AppModule {
             override fun currentTime(): LocalTime {
                 return LocalTime.now()
             }
-
         }
     }
 }
