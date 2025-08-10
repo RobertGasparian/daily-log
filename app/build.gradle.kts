@@ -57,6 +57,12 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
 
+    // Kotlin
+    implementation(libs.kotlinx.datetime)
+    // Kotlin Serialize
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.core)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.android.compiler)
@@ -64,10 +70,6 @@ dependencies {
     // Room
     ksp(libs.androidx.room.compile)
     implementation(libs.androidx.room.ktx)
-
-    // Kotlin Serialize
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.kotlinx.serialization.core)
 
     // Navigation
     implementation(libs.androidx.navigation3.ui)

@@ -1,7 +1,9 @@
 package com.robgasp.dailylog.model
 
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class DLog(
     val id: String,
     val creationDate: LocalDateTime,
