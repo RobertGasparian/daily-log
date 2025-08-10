@@ -1,13 +1,17 @@
 package com.robgasp.dailylog.domain
 
 import com.robgasp.dailylog.model.DLog
-import java.time.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 class GetDLogByIdUseCase {
+    @OptIn(ExperimentalTime::class)
     operator fun invoke(id: String): DLog {
         return DLog(
             id = "some_id",
-            creationDate = LocalDateTime.now(),
+            creationDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
             modificationDate = null,
             title = "Title 1",
 
