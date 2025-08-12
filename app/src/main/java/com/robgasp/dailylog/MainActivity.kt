@@ -20,18 +20,31 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshots.Snapshot
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.navigation3.runtime.entry
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import com.robgasp.dailylog.screens.NavigationViewModel
+import com.robgasp.dailylog.screens.Screen
+import com.robgasp.dailylog.screens.ScreenA
+import com.robgasp.dailylog.screens.ScreenB
+import com.robgasp.dailylog.screens.ScreenC
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     val viewModel: LogEditorViewModel by viewModels()
+    val navViewModel: NavigationViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,10 +56,39 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             DailyLogTheme {
-                MainScreen(list)
+                val backstack = remember { navViewModel.backStack.toMutableStateList() }
+                NavigationWindow(backstack, viewModel)
             }
         }
     }
+}
+
+@Composable
+fun NavigationWindow(backStack: SnapshotStateList<Screen>, viewModel: LogEditorViewModel, modifier: Modifier = Modifier) {
+    NavDisplay(
+        backStack = backStack,
+        onBack = { backStack.removeLastOrNull() },
+        entryProvider = entryProvider {
+            entry<Screen.A> {
+                ScreenA {
+                    backStack.add(Screen.B(it))
+                }
+            }
+            entry<Screen.B> {
+                ScreenB(it.id) {
+                    backStack.add(Screen.C(viewModel.getLog(it.id)))
+                }
+            }
+            entry<Screen.C> {
+                ScreenC(it.log) {
+                    Snapshot.withMutableSnapshot {
+                        backStack.clear()
+                        backStack.add(Screen.A)
+                    }
+                }
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
