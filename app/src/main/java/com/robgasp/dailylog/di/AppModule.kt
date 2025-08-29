@@ -10,7 +10,7 @@ import java.time.LocalTime
 
 @Module
 @InstallIn(SingletonComponent::class)
-class AppModule {
+object AppModule {
 
     @Provides
     fun providesDateProvider(): DateProvider {

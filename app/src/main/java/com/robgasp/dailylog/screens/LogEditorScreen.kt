@@ -50,7 +50,7 @@ fun LogEditor(modifier: Modifier = Modifier) {
 @Composable
 private fun LogEditorScreenPreview() {
     DailyLogTheme {
-        LogEditorScreen()
+//        LogEditorScreen()
     }
 }
 

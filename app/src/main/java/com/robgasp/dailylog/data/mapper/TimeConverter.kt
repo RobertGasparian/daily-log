@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
 
+@Suppress("unused")
 object TimeConverter {
 
     @TypeConverter

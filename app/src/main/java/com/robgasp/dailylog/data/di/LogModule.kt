@@ -15,6 +15,7 @@ import jakarta.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 object LogModule {
     @Provides
     @Singleton

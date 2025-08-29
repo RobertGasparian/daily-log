@@ -39,7 +39,6 @@ import com.robgasp.dailylog.screens.ScreenA
 import com.robgasp.dailylog.screens.ScreenB
 import com.robgasp.dailylog.screens.ScreenC
 import com.robgasp.dailylog.screens.DaysListScreen
-import com.robgasp.dailylog.LogEditorViewModel
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
