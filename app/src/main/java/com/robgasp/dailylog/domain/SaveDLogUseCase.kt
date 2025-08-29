@@ -3,8 +3,8 @@ package com.robgasp.dailylog.domain
 import com.robgasp.dailylog.model.DLog
 import javax.inject.Inject
 
-class GetDLogByIdUseCase @Inject constructor(
+class SaveDLogUseCase @Inject constructor(
     private val dLogRepo: DLogRepository,
 ) {
-    suspend operator fun invoke(id: String): DLog? = dLogRepo.getDLogById(id)
+    suspend operator fun invoke(dLog: DLog) = dLogRepo.addDLog(dLog)
 }

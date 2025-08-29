@@ -44,6 +44,13 @@ android {
     buildFeatures {
         compose = true
     }
+
+    sourceSets["androidTest"].assets.srcDir("$projectDir/schemas")
+}
+
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas") // folder to write JSONs
+    arg("room.incremental", "true")
 }
 
 dependencies {
