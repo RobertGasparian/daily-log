@@ -2,6 +2,7 @@ package com.robgasp.dailylog
 
 import androidx.lifecycle.ViewModel
 import com.robgasp.dailylog.domain.GetDLogByIdUseCase
+import com.robgasp.dailylog.domain.SaveDLogUseCase
 import com.robgasp.dailylog.model.DLog
 import com.robgasp.dailylog.util.DateProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,15 +14,19 @@ import javax.inject.Inject
 class LogEditorViewModel @Inject constructor(
     private val dateProvider: DateProvider,
     private val getDLogByIdUseCase: GetDLogByIdUseCase,
+    private val saveDLogUseCase: SaveDLogUseCase,
 ) : ViewModel() {
 
     init {
-        Timber.tag("date_check").d( dateProvider.currentDate().toString())
+        Timber.Forest.tag("date_check").d(dateProvider.currentDate().toString())
     }
 
     fun getTime(): LocalTime {
         return dateProvider.currentTime()
     }
 
-    fun getLog(id: String): DLog = getDLogByIdUseCase(id)
+    suspend fun getLog(id: String): DLog? = getDLogByIdUseCase(id)
+    fun addLog() {
+        TODO("Not yet implemented")
+    }
 }

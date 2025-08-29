@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun ScreenA(modifier: Modifier = Modifier, onNext: (id: String) -> Unit) {
     Box(modifier.fillMaxSize().background(Color.Green)) {
-        Button(modifier = Modifier.align(Alignment.Center),onClick = { onNext("Some id (for now)") }) {
+        Button(modifier = Modifier.align(Alignment.Center), onClick = { onNext("Some id (for now)") }) {
             Text("To Screen B")
         }
     }

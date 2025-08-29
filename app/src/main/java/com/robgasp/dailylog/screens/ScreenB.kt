@@ -24,6 +24,5 @@ fun ScreenB(id: String, modifier: Modifier = Modifier, onNext: () -> Unit) {
                 Text("To Screen C")
             }
         }
-
     }
 }

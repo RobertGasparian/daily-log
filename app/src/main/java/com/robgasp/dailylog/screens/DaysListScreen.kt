@@ -1,4 +1,4 @@
-package com.robgasp.dailylog
+package com.robgasp.dailylog.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement

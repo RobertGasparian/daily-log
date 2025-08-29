@@ -27,18 +27,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
 import com.robgasp.dailylog.screens.NavigationViewModel
 import com.robgasp.dailylog.screens.Screen
 import com.robgasp.dailylog.screens.ScreenA
 import com.robgasp.dailylog.screens.ScreenB
 import com.robgasp.dailylog.screens.ScreenC
+import com.robgasp.dailylog.screens.DaysListScreen
+import com.robgasp.dailylog.LogEditorViewModel
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -68,6 +72,11 @@ fun NavigationWindow(backStack: SnapshotStateList<Screen>, viewModel: LogEditorV
     NavDisplay(
         backStack = backStack,
         onBack = { backStack.removeLastOrNull() },
+        entryDecorators = listOf(
+            rememberSceneSetupNavEntryDecorator(),
+            rememberSavedStateNavEntryDecorator(),
+            rememberViewModelStoreNavEntryDecorator(),
+        ),
         entryProvider = entryProvider {
             entry<Screen.A> {
                 ScreenA {
@@ -76,7 +85,7 @@ fun NavigationWindow(backStack: SnapshotStateList<Screen>, viewModel: LogEditorV
             }
             entry<Screen.B> {
                 ScreenB(it.id) {
-                    backStack.add(Screen.C(viewModel.getLog(it.id)))
+//                    backStack.add(Screen.C(viewModel.getLog(it.id)))
                 }
             }
             entry<Screen.C> {

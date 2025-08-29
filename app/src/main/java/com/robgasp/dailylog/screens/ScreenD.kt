@@ -13,7 +13,7 @@ import androidx.compose.ui.graphics.Color
 @Composable
 fun ScreenD(modifier: Modifier = Modifier, onNext: () -> Unit) {
     Box(modifier.fillMaxSize().background(Color.Yellow)) {
-        Button(modifier = Modifier.align(Alignment.Center),onClick = onNext) {
+        Button(modifier = Modifier.align(Alignment.Center), onClick = onNext) {
             Text("To Screen B (Skip C)")
         }
     }
