@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.screens
+package com.robgasp.dailylog.features.logs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun ScreenD(modifier: Modifier = Modifier, onNext: () -> Unit) {
+fun LogsScreen(viewModel: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: String) -> Unit) {
     Box(modifier.fillMaxSize().background(Color.Yellow)) {
-        Button(modifier = Modifier.align(Alignment.Center), onClick = onNext) {
-            Text("To Screen B (Skip C)")
+        Button(modifier = Modifier.align(Alignment.Center), onClick = { onNext("Some id (for now)") }) {
+            Text("To Details")
         }
     }
 }

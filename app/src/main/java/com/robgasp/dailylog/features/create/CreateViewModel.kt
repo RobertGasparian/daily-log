@@ -1,4 +1,4 @@
-package com.robgasp.dailylog
+package com.robgasp.dailylog.features.create
 
 import androidx.lifecycle.ViewModel
 import com.robgasp.dailylog.domain.GetDLogByIdUseCase
@@ -11,14 +11,18 @@ import java.time.LocalTime
 import javax.inject.Inject
 
 @HiltViewModel
-class LogEditorViewModel @Inject constructor(
+class CreateViewModel @Inject constructor(
     private val dateProvider: DateProvider,
     private val getDLogByIdUseCase: GetDLogByIdUseCase,
     private val saveDLogUseCase: SaveDLogUseCase,
 ) : ViewModel() {
-
     init {
-        Timber.Forest.tag("date_check").d(dateProvider.currentDate().toString())
+        Timber.Forest.tag("vm_checker").d("init: $this")
+    }
+
+    override fun onCleared() {
+        Timber.Forest.tag("vm_checker").d("onCleared: $this")
+        super.onCleared()
     }
 
     fun getTime(): LocalTime {

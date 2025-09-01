@@ -4,14 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -20,80 +20,77 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.snapshots.Snapshot
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
-import com.robgasp.dailylog.screens.NavigationViewModel
-import com.robgasp.dailylog.screens.Screen
-import com.robgasp.dailylog.screens.ScreenA
-import com.robgasp.dailylog.screens.ScreenB
-import com.robgasp.dailylog.screens.ScreenC
-import com.robgasp.dailylog.screens.DaysListScreen
+import com.robgasp.dailylog.navigation.Create
+import com.robgasp.dailylog.navigation.NavigationViewModel
+import com.robgasp.dailylog.features.logs.LogsScreen
+import com.robgasp.dailylog.navigation.Insights
+import com.robgasp.dailylog.navigation.Logs
+import com.robgasp.dailylog.features.create.CreateScreen
+import com.robgasp.dailylog.features.create.CreateViewModel
+import com.robgasp.dailylog.features.insights.InsightsScreen
+import com.robgasp.dailylog.features.insights.InsightsViewModel
+import com.robgasp.dailylog.features.logs.LogDetailsScreen
+import com.robgasp.dailylog.features.logs.LogsViewModel
+import com.robgasp.dailylog.navigation.LogDetails
+import com.robgasp.dailylog.navigation.RootKey
+import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
+import com.robgasp.dailylog.ui.widgets.Tab
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    val viewModel: LogEditorViewModel by viewModels()
-    val navViewModel: NavigationViewModel by viewModels()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
-        val time = viewModel.getTime()
-        val list = List(40) {
-            "${time.hour}: Day $it" to STATIC_COLORS_TEMP[(0..4).random()]
-        }
         setContent {
             DailyLogTheme {
-                val backstack = remember { navViewModel.backStack.toMutableStateList() }
-                NavigationWindow(backstack, viewModel)
+                MainScreen()
             }
         }
     }
 }
 
 @Composable
-fun NavigationWindow(backStack: SnapshotStateList<Screen>, viewModel: LogEditorViewModel, modifier: Modifier = Modifier) {
+fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewModel = viewModel()) {
+    val logsVM: LogsViewModel = hiltViewModel()
+    val createVM: CreateViewModel = hiltViewModel()
+    val insightsVM: InsightsViewModel = hiltViewModel()
     NavDisplay(
-        backStack = backStack,
-        onBack = { backStack.removeLastOrNull() },
+        modifier = modifier,
+        backStack = viewModel.topLevelBackStack.backStack,
+        onBack = { viewModel.topLevelBackStack.removeLast() },
         entryDecorators = listOf(
             rememberSceneSetupNavEntryDecorator(),
             rememberSavedStateNavEntryDecorator(),
             rememberViewModelStoreNavEntryDecorator(),
         ),
         entryProvider = entryProvider {
-            entry<Screen.A> {
-                ScreenA {
-                    backStack.add(Screen.B(it))
+            entry<Logs> {
+                LogsScreen(viewModel = logsVM) {
+                    viewModel.topLevelBackStack.addKey(LogDetails)
                 }
             }
-            entry<Screen.B> {
-                ScreenB(it.id) {
-//                    backStack.add(Screen.C(viewModel.getLog(it.id)))
-                }
+            entry<Create> {
+                CreateScreen(viewModel = createVM)
             }
-            entry<Screen.C> {
-                ScreenC(it.log) {
-                    Snapshot.withMutableSnapshot {
-                        backStack.clear()
-                        backStack.add(Screen.A)
-                    }
-                }
+            entry<Insights> {
+                InsightsScreen(insightsVM)
+            }
+            entry<LogDetails> {
+                LogDetailsScreen(viewModel = hiltViewModel())
             }
         }
     )
@@ -101,9 +98,10 @@ fun NavigationWindow(backStack: SnapshotStateList<Screen>, viewModel: LogEditorV
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen(list: List<Pair<String, Color>>) {
+fun MainScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val navigationViewModel: NavigationViewModel = viewModel()
     Scaffold(
         topBar = {
             TopAppBar(title = { Title() })
@@ -111,11 +109,27 @@ fun MainScreen(list: List<Pair<String, Color>>) {
         snackbarHost = {
             SnackbarHost(snackbarHostState)
         },
-//        bottomBar = {
-//            BottomAppBar {
-//                Text("Bottom Bar")
-//            }
-//        },
+        bottomBar = {
+            NavigationBar {
+                TOP_LEVEL_TABS.forEach { rootKey ->
+                    val isSelected = navigationViewModel.topLevelBackStack.topLevelKey == rootKey
+                    val tab = rootKey.getTab()
+                    NavigationBarItem(
+                        selected = isSelected,
+                        onClick = { navigationViewModel.topLevelBackStack.addKey(rootKey) },
+                        icon = {
+                            Icon(
+                                imageVector = tab.icon,
+                                contentDescription = tab.label
+                            )
+                        },
+                        label = {
+                            Text(tab.label)
+                        }
+                    )
+                }
+            }
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = {
                 scope.launch {
@@ -126,22 +140,19 @@ fun MainScreen(list: List<Pair<String, Color>>) {
             }
         },
         content = { innerPadding ->
-            Column(Modifier.padding(innerPadding)) {
-                DaysListScreen(
-                    list,
-                )
-            }
+            NavigationWindow(viewModel = navigationViewModel, modifier = Modifier.padding(innerPadding))
         }
     )
 }
 
-val STATIC_COLORS_TEMP = arrayOf(
-    Color.Red,
-    Color.Blue,
-    Color.Yellow,
-    Color.Green,
-    Color.Gray
-)
+private fun RootKey.getTab(): Tab {
+    return when (this) {
+        Create -> Tab.CREATE
+        Insights -> Tab.INSIGHTS
+        Logs -> Tab.LOGS
+        else -> throw IllegalArgumentException("Invalid top level root key")
+    }
+}
 
 @Composable
 fun Title(modifier: Modifier = Modifier) {
@@ -156,13 +167,6 @@ fun Title(modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     DailyLogTheme {
-        MainScreen(
-            listOf(
-                "Day 1" to Color.Red,
-                "Day 2" to Color.Blue,
-                "Day 3" to Color.Yellow,
-                "Day 4" to Color.Green,
-            )
-        )
+        MainScreen()
     }
 }
