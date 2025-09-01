@@ -9,7 +9,9 @@ import androidx.lifecycle.ViewModel
 import kotlinx.serialization.Serializable
 
 
-sealed interface NavKey
+sealed interface NavKey {
+    val appBarTitle: String
+}
 
 sealed interface RootKey : NavKey
 
@@ -19,17 +21,30 @@ sealed interface CreateKey : NavKey
 
 sealed interface InsightsKey : NavKey
 
+// TODO: refactor the hardcoded strings to resources
 @Serializable
-data object Logs : LogsKey, RootKey
+data object Logs : LogsKey, RootKey {
+    override val appBarTitle: String
+        get() = "Logs List"
+}
 
 @Serializable
-data object Create : CreateKey, RootKey
+data object Create : CreateKey, RootKey {
+    override val appBarTitle: String
+        get() = "Create New Log"
+}
 
 @Serializable
-data object Insights : InsightsKey, RootKey
+data object Insights : InsightsKey, RootKey {
+    override val appBarTitle: String
+        get() = "Insights"
+}
 
 @Serializable
-data object LogDetails : LogsKey
+data object LogDetails : LogsKey {
+    override val appBarTitle: String
+        get() = "Log Details"
+}
 
 val TOP_LEVEL_TABS: List<RootKey> = listOf(
     Logs,

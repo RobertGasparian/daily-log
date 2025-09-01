@@ -5,18 +5,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -47,6 +45,7 @@ import com.robgasp.dailylog.navigation.RootKey
 import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import com.robgasp.dailylog.ui.widgets.Tab
+import com.robgasp.dailylog.ui.widgets.TopBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -104,7 +103,47 @@ fun MainScreen() {
     val navigationViewModel: NavigationViewModel = viewModel()
     Scaffold(
         topBar = {
-            TopAppBar(title = { Title() })
+            TopBar(
+                screenTitle = navigationViewModel.topLevelBackStack.topLevelKey.appBarTitle,
+                onAvatarClick = {
+//                    navigationViewModel.openProfile()
+                    scope.launch {
+                        scope.launch {
+                            val result = snackbarHostState.showSnackbar(
+                                message = "Profile clicked",
+                                duration = SnackbarDuration.Short,
+                                actionLabel = "Dismiss"
+                            )
+                            when (result) {
+                                SnackbarResult.Dismissed -> {
+                                    // do nothing
+                                }
+                                SnackbarResult.ActionPerformed -> {
+                                    snackbarHostState.currentSnackbarData?.dismiss()
+                                }
+                            }
+                        }
+                    }
+                },
+                onNotificationsClick = {
+//                    navigationViewModel.openNotifications()
+                    scope.launch {
+                        val result = snackbarHostState.showSnackbar(
+                            message = "Notifications clicked",
+                            duration = SnackbarDuration.Short,
+                            actionLabel = "Dismiss"
+                        )
+                        when (result) {
+                            SnackbarResult.Dismissed -> {
+                                // do nothing
+                            }
+                            SnackbarResult.ActionPerformed -> {
+                                snackbarHostState.currentSnackbarData?.dismiss()
+                            }
+                        }
+                    }
+                }
+            )
         },
         snackbarHost = {
             SnackbarHost(snackbarHostState)
@@ -130,19 +169,30 @@ fun MainScreen() {
                 }
             }
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = {
-                scope.launch {
-                    snackbarHostState.showSnackbar("FAB Clicked")
-                }
-            }) {
-                Icon(Icons.Default.Add, contentDescription = "Add")
-            }
-        },
+//        floatingActionButton = {
+//            FloatingActionButton(onClick = {
+//                scope.launch {
+//                    snackbarHostState.showSnackbar("FAB Clicked")
+//                }
+//            }) {
+//                Icon(Icons.Default.Add, contentDescription = "Add")
+//            }
+//        },
         content = { innerPadding ->
-            NavigationWindow(viewModel = navigationViewModel, modifier = Modifier.padding(innerPadding))
+            NavigationWindow(
+                viewModel = navigationViewModel,
+                modifier = Modifier.padding(innerPadding)
+            )
         }
     )
+}
+
+private fun NavigationViewModel.openNotifications() {
+    // navigate to notifications screen
+}
+
+private fun NavigationViewModel.openProfile() {
+    // navigate to profile screen
 }
 
 private fun RootKey.getTab(): Tab {
