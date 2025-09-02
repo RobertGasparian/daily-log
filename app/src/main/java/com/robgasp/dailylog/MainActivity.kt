@@ -178,17 +178,7 @@ private fun RootKey.getTab(): Tab {
         Create -> Tab.CREATE
         Insights -> Tab.INSIGHTS
         Logs -> Tab.LOGS
-        else -> throw IllegalArgumentException("Invalid top level root key")
     }
-}
-
-@Composable
-fun Title(modifier: Modifier = Modifier) {
-    Text(
-        text = "Daily Log",
-        modifier = modifier,
-        fontSize = 32.sp
-    )
 }
 
 @Preview(showBackground = true)
