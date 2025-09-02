@@ -78,8 +78,8 @@ fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewMod
         ),
         entryProvider = entryProvider {
             entry<Logs> {
-                LogsScreen(viewModel = logsVM) {
-                    viewModel.topLevelBackStack.addKey(LogDetails)
+                LogsScreen(vm = logsVM) {
+                    viewModel.topLevelBackStack.addKey(LogDetails(it))
                 }
             }
             entry<Create> {

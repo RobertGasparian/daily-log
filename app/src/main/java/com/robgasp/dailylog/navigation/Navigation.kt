@@ -41,7 +41,9 @@ data object Insights : InsightsKey, RootKey {
 }
 
 @Serializable
-data object LogDetails : LogsKey {
+data class LogDetails(
+    val logId: String,
+) : LogsKey {
     override val appBarTitle: String
         get() = "Log Details"
 }
