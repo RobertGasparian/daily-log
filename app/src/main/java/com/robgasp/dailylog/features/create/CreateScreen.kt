@@ -29,8 +29,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.robgasp.dailylog.ui.widgets.LogDatePicker
-import com.robgasp.dailylog.ui.widgets.LogTimePicker
+import com.robgasp.dailylog.core.ui.LogDatePicker
+import com.robgasp.dailylog.core.ui.LogTimePicker
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
 import timber.log.Timber
@@ -44,7 +44,7 @@ fun CreateScreen(
     val focusManager = LocalFocusManager.current
 
     val snackbarHostState = remember { SnackbarHostState() }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(vm) {
         Timber.i("CreateScreen LaunchedEffect")
         vm.events.collect { event ->
             Timber.i("CreateScreen Event: $event")
