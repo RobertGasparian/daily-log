@@ -12,7 +12,7 @@ interface LogDao {
     @Query(
         """
         SELECT * FROM logs
-        ORDER BY day ASC, time ASC, id ASC
+        ORDER BY day DESC, time DESC, id DESC
     """
     )
     fun observeAllLogs(): Flow<List<LogEntity>>
@@ -20,7 +20,7 @@ interface LogDao {
     @Query(
         """
         SELECT * FROM logs
-        ORDER BY day ASC, time ASC, id ASC
+        ORDER BY day DESC, time DESC, id DESC
     """
     )
     suspend fun getAllLogs(): List<LogEntity>
