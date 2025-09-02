@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.ui.widgets
+package com.robgasp.dailylog.core.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column

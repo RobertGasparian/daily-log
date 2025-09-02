@@ -42,8 +42,8 @@ import com.robgasp.dailylog.navigation.LogDetails
 import com.robgasp.dailylog.navigation.RootKey
 import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
-import com.robgasp.dailylog.ui.widgets.Tab
-import com.robgasp.dailylog.ui.widgets.TopBar
+import com.robgasp.dailylog.core.ui.Tab
+import com.robgasp.dailylog.core.ui.TopBar
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
 import dagger.hilt.android.AndroidEntryPoint

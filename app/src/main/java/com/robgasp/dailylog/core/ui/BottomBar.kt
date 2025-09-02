@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.ui.widgets
+package com.robgasp.dailylog.core.ui
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
