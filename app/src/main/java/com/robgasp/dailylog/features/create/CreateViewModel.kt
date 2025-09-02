@@ -17,7 +17,7 @@ import kotlin.uuid.Uuid
 @HiltViewModel
 class CreateViewModel @Inject constructor(
     private val dateTimeProvider: DateTimeProvider,
-    private val saveDLogUseCase: SaveDLogUseCase,
+    private val saveDLogUC: SaveDLogUseCase,
     private val logValidator: Validator<UIState>,
 ) : BaseViewModel<CreateViewModel.UIState, CreateViewModel.Event>(UIState.initialState(dateTimeProvider)) {
 
@@ -60,7 +60,7 @@ class CreateViewModel @Inject constructor(
             }
             Validator.Valid -> {
                 viewModelScope.launch {
-                    saveDLogUseCase(uiState.value.toDLog(dateTimeProvider))
+                    saveDLogUC(uiState.value.toDLog(dateTimeProvider))
                     post(Saved)
                 }
             }
