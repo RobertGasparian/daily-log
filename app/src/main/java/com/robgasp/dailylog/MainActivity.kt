@@ -10,10 +10,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -46,6 +44,8 @@ import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import com.robgasp.dailylog.ui.widgets.Tab
 import com.robgasp.dailylog.ui.widgets.TopBar
+import com.robgasp.dailylog.util.DoNothing
+import com.robgasp.dailylog.util.showDismissableSnackBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -83,7 +83,7 @@ fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewMod
                 }
             }
             entry<Create> {
-                CreateScreen(viewModel = createVM)
+                CreateScreen(vm = createVM)
             }
             entry<Insights> {
                 InsightsScreen(insightsVM)
@@ -108,38 +108,16 @@ fun MainScreen() {
                 onAvatarClick = {
 //                    navigationViewModel.openProfile()
                     scope.launch {
-                        scope.launch {
-                            val result = snackbarHostState.showSnackbar(
-                                message = "Profile clicked",
-                                duration = SnackbarDuration.Short,
-                                actionLabel = "Dismiss"
-                            )
-                            when (result) {
-                                SnackbarResult.Dismissed -> {
-                                    // do nothing
-                                }
-                                SnackbarResult.ActionPerformed -> {
-                                    snackbarHostState.currentSnackbarData?.dismiss()
-                                }
-                            }
+                        showDismissableSnackBar(snackbarHostState, "Profile clicked") {
+                            DoNothing
                         }
                     }
                 },
                 onNotificationsClick = {
 //                    navigationViewModel.openNotifications()
                     scope.launch {
-                        val result = snackbarHostState.showSnackbar(
-                            message = "Notifications clicked",
-                            duration = SnackbarDuration.Short,
-                            actionLabel = "Dismiss"
-                        )
-                        when (result) {
-                            SnackbarResult.Dismissed -> {
-                                // do nothing
-                            }
-                            SnackbarResult.ActionPerformed -> {
-                                snackbarHostState.currentSnackbarData?.dismiss()
-                            }
+                        showDismissableSnackBar(snackbarHostState, "Notifications clicked") {
+                            DoNothing
                         }
                     }
                 }

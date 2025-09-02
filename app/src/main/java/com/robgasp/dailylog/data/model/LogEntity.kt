@@ -5,13 +5,10 @@ import androidx.room.PrimaryKey
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @Entity(tableName = "logs")
-@OptIn(ExperimentalUuidApi::class)
-data class LogEntity constructor(
-    @PrimaryKey val id: String = Uuid.Companion.random().toString(),
+data class LogEntity(
+    @PrimaryKey val id: String,
     val creationDate: LocalDateTime,
     val modificationDate: LocalDateTime? = null,
     val time: LocalTime,
