@@ -8,6 +8,6 @@ import javax.inject.Singleton
 @Singleton
 class GetDLogsListUseCase @Inject constructor(
     private val dLogRepo: DLogRepository,
-){
+) {
     operator fun invoke(): Flow<List<DLog>> = dLogRepo.getAllDLogsFlow()
 }

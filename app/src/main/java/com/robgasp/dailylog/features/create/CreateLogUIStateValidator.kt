@@ -1,6 +1,6 @@
 package com.robgasp.dailylog.features.create
 
-import com.robgasp.dailylog.util.Validator
+import com.robgasp.dailylog.core.misc.Validator
 import jakarta.inject.Inject
 import jakarta.inject.Singleton
 

@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
@@ -50,15 +51,31 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    itemsIndexed(items = state.logs, key = { _, log -> log.id }) { index, log ->
-                        LogItem(log) {
-                            vm.openDetailedLog(log)
+                    state.logs.forEach { section ->
+                        stickyHeader(key = section.date) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceContainer
+                            ) {
+                                Text(
+                                    text = section.title,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                )
+                            }
                         }
-                        if (index < state.logs.lastIndex) {
-                            HorizontalDivider(
-                                thickness = 1.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
+
+                        itemsIndexed(items = section.logs, key = { _, log -> log.id }) { index, log ->
+                            LogItem(log) {
+                                vm.openDetailedLog(log)
+                            }
+                            if (index < section.logs.lastIndex) {
+                                HorizontalDivider(
+                                    thickness = 1.dp,
+                                    color = MaterialTheme.colorScheme.outlineVariant
+                                )
+                            }
                         }
                     }
                 }

@@ -2,7 +2,7 @@ package com.robgasp.dailylog.features.create.di
 
 import com.robgasp.dailylog.features.create.CreateLogUIStateValidator
 import com.robgasp.dailylog.features.create.CreateViewModel
-import com.robgasp.dailylog.util.Validator
+import com.robgasp.dailylog.core.misc.Validator
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

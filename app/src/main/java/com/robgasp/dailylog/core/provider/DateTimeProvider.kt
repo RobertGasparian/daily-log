@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.util
+package com.robgasp.dailylog.core.provider
 
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime

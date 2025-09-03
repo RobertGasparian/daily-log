@@ -41,5 +41,4 @@ fun ErrorDialog(
         text = { Text(message) }
 
     )
-
 }

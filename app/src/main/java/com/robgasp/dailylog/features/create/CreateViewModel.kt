@@ -4,8 +4,8 @@ import androidx.lifecycle.viewModelScope
 import com.robgasp.dailylog.core.BaseViewModel
 import com.robgasp.dailylog.domain.SaveDLogUseCase
 import com.robgasp.dailylog.model.DLog
-import com.robgasp.dailylog.util.DateTimeProvider
-import com.robgasp.dailylog.util.Validator
+import com.robgasp.dailylog.core.provider.DateTimeProvider
+import com.robgasp.dailylog.core.misc.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate

@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.util
+package com.robgasp.dailylog.core.misc
 
 interface Validator<T> {
     fun isValid(value: T): Report
