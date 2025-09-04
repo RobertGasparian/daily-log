@@ -25,7 +25,10 @@ class LogsViewModel @Inject constructor(
             getLogsListUC().collect { logs ->
                 update {
                     it.copy(
-                        logs = separateToDailyGroupsUC(logs).toSectionList(dateToGroupTitleMapper),
+                        sections = separateToDailyGroupsUC(logs).toSectionList(
+                            dateToGroupTitleMapper = dateToGroupTitleMapper,
+                            prevCollapsedSections = it.getAllCollapsedDates()
+                        ),
                         loadingStatus = UIState.Status.SUCCESS
                     )
                 }
@@ -33,12 +36,16 @@ class LogsViewModel @Inject constructor(
         }
     }
 
-    private fun SortedMap<LocalDate, List<DLog>>.toSectionList(dateToGroupTitleMapper: Mapper<LocalDate, String>): List<UIState.Section> {
+    private fun SortedMap<LocalDate, List<DLog>>.toSectionList(
+        dateToGroupTitleMapper: Mapper<LocalDate, String>,
+        prevCollapsedSections: Set<LocalDate> = emptySet(),
+    ): List<UIState.Section> {
         return entries.toList().map { (date, logs) ->
             UIState.Section(
                 title = dateToGroupTitleMapper.mapTo(date),
                 date = date,
-                logs = logs
+                logs = logs,
+                isCollapsed = prevCollapsedSections.contains(date)
             )
         }
     }
@@ -51,14 +58,27 @@ class LogsViewModel @Inject constructor(
         update { it.copy(loadingStatus = UIState.Status.SUCCESS) }
     }
 
+    fun toggleGroup(date: LocalDate) {
+        update {
+            val newSections = it.sections.map { section ->
+                if (section.date == date) {
+                    section.copy(isCollapsed = !section.isCollapsed)
+                } else {
+                    section
+                }
+            }
+            it.copy(sections = newSections)
+        }
+    }
+
     data class UIState(
-        val logs: List<Section>,
+        val sections: List<Section>,
         val loadingStatus: Status,
     ) {
         companion object {
             fun initialState(): UIState {
                 return UIState(
-                    logs = emptyList(),
+                    sections = emptyList(),
                     loadingStatus = Status.LOADING,
                 )
             }
@@ -67,8 +87,16 @@ class LogsViewModel @Inject constructor(
         data class Section(
             val title: String,
             val date: LocalDate,
+            val isCollapsed: Boolean,
             val logs: List<DLog>,
         )
+
+        fun getAllCollapsedDates(): Set<LocalDate> {
+            return sections.asSequence()
+                .filter { it.isCollapsed }
+                .map { it.date }
+                .toSet()
+        }
 
         enum class Status {
             LOADING,
