@@ -56,6 +56,5 @@ fun LogDetailsScreen(vm: LogDetailsViewModel, modifier: Modifier = Modifier) {
                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
             )
         }
-
     }
 }

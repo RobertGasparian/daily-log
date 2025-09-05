@@ -4,8 +4,22 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -14,10 +28,14 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -44,10 +62,13 @@ import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import com.robgasp.dailylog.core.ui.Tab
 import com.robgasp.dailylog.core.ui.TopBar
 import com.robgasp.dailylog.features.logs.LogDetailsViewModel
+import com.robgasp.dailylog.navigation.ScreenKey
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+
+val BottomNavHeight = 104.dp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -106,12 +127,22 @@ fun MainScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val navigationViewModel: NavigationViewModel = viewModel()
+
+    val defaultNavigationBarHeight = with(LocalDensity.current) { 80.dp }
+
+
+    val showNavigationBar = navigationViewModel.topLevelBackStack.currentKey !is ScreenKey
+
+    val animatedContentBottomPadding by animateDpAsState(
+        targetValue = if (showNavigationBar) defaultNavigationBarHeight else 0.dp,
+        animationSpec = tween(durationMillis = 300), // Match this duration to your AnimatedVisibility below
+        label = "contentBottomPaddingAnimation"
+    )
     Scaffold(
         topBar = {
             TopBar(
-                screenTitle = navigationViewModel.topLevelBackStack.topLevelKey.appBarTitle,
+                screenTitle = navigationViewModel.topLevelBackStack.currentKey.appBarTitle,
                 onAvatarClick = {
-//                    navigationViewModel.openProfile()
                     scope.launch {
                         showDismissableSnackBar(snackbarHostState, "Profile clicked") {
                             DoNothing
@@ -119,7 +150,6 @@ fun MainScreen() {
                     }
                 },
                 onNotificationsClick = {
-//                    navigationViewModel.openNotifications()
                     scope.launch {
                         showDismissableSnackBar(snackbarHostState, "Notifications clicked") {
                             DoNothing
@@ -131,51 +161,64 @@ fun MainScreen() {
         snackbarHost = {
             SnackbarHost(snackbarHostState)
         },
-        bottomBar = {
-            NavigationBar {
-                TOP_LEVEL_TABS.forEach { rootKey ->
-                    val isSelected = navigationViewModel.topLevelBackStack.topLevelKey == rootKey
-                    val tab = rootKey.getTab()
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = { navigationViewModel.topLevelBackStack.addKey(rootKey) },
-                        icon = {
-                            Icon(
-                                imageVector = tab.icon,
-                                contentDescription = tab.label
-                            )
-                        },
-                        label = {
-                            Text(tab.label)
-                        }
-                    )
+        floatingActionButton = {
+            if (showNavigationBar) {
+                FloatingActionButton(
+                    onClick = {
+                        navigationViewModel.topLevelBackStack.addKey(Create)
+                    }
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = "Add")
                 }
             }
         },
-//        floatingActionButton = {
-//            FloatingActionButton(onClick = {
-//                scope.launch {
-//                    snackbarHostState.showSnackbar("FAB Clicked")
-//                }
-//            }) {
-//                Icon(Icons.Default.Add, contentDescription = "Add")
-//            }
-//        },
         content = { innerPadding ->
-            NavigationWindow(
-                viewModel = navigationViewModel,
-                modifier = Modifier.padding(innerPadding)
-            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                NavigationWindow(
+                    viewModel = navigationViewModel,
+                    modifier = Modifier.padding(
+                        top = innerPadding.calculateTopPadding(),
+                        bottom = animatedContentBottomPadding
+                    )
+                )
+            }
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(BottomNavHeight)
+            ) {
+                AnimatedVisibility(
+                    visible = showNavigationBar,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                ) {
+                    NavigationBar {
+                        TOP_LEVEL_TABS.forEach { rootKey ->
+                            val isSelected =
+                                navigationViewModel.topLevelBackStack.tabLevelKey == rootKey
+                            val tab = rootKey.getTab()
+                            NavigationBarItem(
+                                selected = isSelected,
+                                onClick = { navigationViewModel.topLevelBackStack.addKey(rootKey) },
+                                icon = {
+                                    Icon(
+                                        imageVector = tab.icon,
+                                        contentDescription = tab.label
+                                    )
+                                },
+                                label = {
+                                    Text(tab.label)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
         }
     )
-}
-
-private fun NavigationViewModel.openNotifications() {
-    // navigate to notifications screen
-}
-
-private fun NavigationViewModel.openProfile() {
-    // navigate to profile screen
 }
 
 private fun RootKey.getTab(): Tab {

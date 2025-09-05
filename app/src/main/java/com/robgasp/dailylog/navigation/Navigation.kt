@@ -13,11 +13,12 @@ sealed interface NavKey {
     val appBarTitle: String
 }
 
+sealed interface ScreenKey : NavKey
+
 sealed interface RootKey : NavKey
 
 sealed interface LogsKey : NavKey
 
-sealed interface CreateKey : NavKey
 
 sealed interface InsightsKey : NavKey
 
@@ -29,7 +30,7 @@ data object Logs : LogsKey, RootKey {
 }
 
 @Serializable
-data object Create : CreateKey, RootKey {
+data object Create : ScreenKey, NavKey {
     override val appBarTitle: String
         get() = "Create New Log"
 }
@@ -51,7 +52,6 @@ data class LogDetails(
 val TOP_LEVEL_TABS: List<RootKey> = listOf(
     Logs,
     Insights,
-    Create
 )
 
 
@@ -61,8 +61,12 @@ class TopLevelBackStack<T : NavKey>(startKey: T) {
         startKey to mutableStateListOf(startKey)
     )
 
-    // Expose the current top level route for consumers (selected tab)
-    var topLevelKey by mutableStateOf(startKey)
+    // Expose the current tab level route for consumers (selected tab)
+    var tabLevelKey by mutableStateOf(startKey)
+        private set
+
+    // Expose the actual key on top of the backStack (visible screen)
+    var currentKey by mutableStateOf(startKey)
         private set
 
     // Expose the back stack so it can be rendered by the NavDisplay
@@ -72,6 +76,7 @@ class TopLevelBackStack<T : NavKey>(startKey: T) {
         backStack.apply {
             clear()
             addAll(topLevelStacks.flatMap { it.value })
+            currentKey = last()
         }
 
     private fun addTopLevel(key: T) {
@@ -85,20 +90,20 @@ class TopLevelBackStack<T : NavKey>(startKey: T) {
                 }
             }
         }
-        topLevelKey = key
+        tabLevelKey = key
         updateBackStack()
     }
 
     private fun addNestedLevel(key: T) {
-        topLevelStacks[topLevelKey]?.add(key)
+        topLevelStacks[tabLevelKey]?.add(key)
         updateBackStack()
     }
 
     fun removeLast() {
-        val removedKey = topLevelStacks[topLevelKey]?.removeLastOrNull()
+        val removedKey = topLevelStacks[tabLevelKey]?.removeLastOrNull()
         // If the removed key was a top level key, remove the associated top level stack
         topLevelStacks.remove(removedKey)
-        topLevelKey = topLevelStacks.keys.last()
+        tabLevelKey = topLevelStacks.keys.last()
         updateBackStack()
     }
 
