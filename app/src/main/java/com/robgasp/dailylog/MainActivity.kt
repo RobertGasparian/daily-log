@@ -43,6 +43,7 @@ import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import com.robgasp.dailylog.core.ui.Tab
 import com.robgasp.dailylog.core.ui.TopBar
+import com.robgasp.dailylog.features.logs.LogDetailsViewModel
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
 import dagger.hilt.android.AndroidEntryPoint
@@ -88,7 +89,12 @@ fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewMod
                 InsightsScreen(insightsVM)
             }
             entry<LogDetails> {
-                LogDetailsScreen(viewModel = hiltViewModel())
+                val vm = hiltViewModel<LogDetailsViewModel, LogDetailsViewModel.Factory>(
+                    creationCallback = { factory ->
+                        factory.create(it.logId)
+                    }
+                )
+                LogDetailsScreen(vm = vm)
             }
         }
     )

@@ -38,7 +38,7 @@ import timber.log.Timber
 @Composable
 fun CreateScreen(
     modifier: Modifier = Modifier,
-    vm: CreateViewModel = hiltViewModel<CreateViewModel>()
+    vm: CreateViewModel,
 ) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     val focusManager = LocalFocusManager.current
@@ -164,10 +164,4 @@ fun CreateScreen(
             DoNothing
         }
     }
-}
-
-@Preview
-@Composable
-private fun CreateScreenPreview() {
-    CreateScreen()
 }
