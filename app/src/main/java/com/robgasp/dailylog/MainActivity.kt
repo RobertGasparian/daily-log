@@ -11,7 +11,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -21,7 +23,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -33,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +46,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
+import com.robgasp.dailylog.core.ui.BottomNavPanel
 import com.robgasp.dailylog.navigation.Create
 import com.robgasp.dailylog.navigation.NavigationViewModel
 import com.robgasp.dailylog.features.logs.LogsScreen
@@ -128,16 +131,8 @@ fun MainScreen() {
     val scope = rememberCoroutineScope()
     val navigationViewModel: NavigationViewModel = viewModel()
 
-    val defaultNavigationBarHeight = with(LocalDensity.current) { 80.dp }
-
-
     val showNavigationBar = navigationViewModel.topLevelBackStack.currentKey !is ScreenKey
 
-    val animatedContentBottomPadding by animateDpAsState(
-        targetValue = if (showNavigationBar) defaultNavigationBarHeight else 0.dp,
-        animationSpec = tween(durationMillis = 300), // Match this duration to your AnimatedVisibility below
-        label = "contentBottomPaddingAnimation"
-    )
     Scaffold(
         topBar = {
             TopBar(
@@ -161,69 +156,85 @@ fun MainScreen() {
         snackbarHost = {
             SnackbarHost(snackbarHostState)
         },
-        floatingActionButton = {
-            if (showNavigationBar) {
-                FloatingActionButton(
-                    onClick = {
-                        navigationViewModel.topLevelBackStack.addKey(Create)
-                    }
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add")
-                }
-            }
-        },
         content = { innerPadding ->
-            Box(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Transparent)
+            ) {
                 NavigationWindow(
                     viewModel = navigationViewModel,
                     modifier = Modifier.padding(
                         top = innerPadding.calculateTopPadding(),
-                        bottom = animatedContentBottomPadding
                     )
                 )
-            }
-        },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(BottomNavHeight)
-            ) {
+
                 AnimatedVisibility(
                     visible = showNavigationBar,
-                    modifier = Modifier.align(Alignment.BottomCenter),
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .background(Color.Transparent),
                     enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                     exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
                 ) {
-                    NavigationBar {
-                        TOP_LEVEL_TABS.forEach { rootKey ->
-                            val isSelected =
-                                navigationViewModel.topLevelBackStack.tabLevelKey == rootKey
-                            val tab = rootKey.getTab()
-                            NavigationBarItem(
-                                selected = isSelected,
-                                onClick = { navigationViewModel.topLevelBackStack.addKey(rootKey) },
-                                icon = {
-                                    Icon(
-                                        imageVector = tab.icon,
-                                        contentDescription = tab.label
-                                    )
-                                },
-                                label = {
-                                    Text(tab.label)
-                                }
+                    val midIndex = TOP_LEVEL_TABS.size / 2
+
+                    BottomNavPanel(
+                        fabContent = {
+                            Icon(Icons.Default.Add, contentDescription = "Add")
+                        },
+                        fabAction = {
+                            navigationViewModel.topLevelBackStack.addKey(Create)
+                        },
+                        leftContent = {
+                            NavTabSectionContent(
+                                rootKeys = TOP_LEVEL_TABS.subList(0, midIndex),
+                                selectedKey = navigationViewModel.topLevelBackStack.tabLevelKey as RootKey,
+                                onSelect = { navigationViewModel.topLevelBackStack.addKey(it) }
+                            )
+                        },
+                        rightContent = {
+                            NavTabSectionContent(
+                                rootKeys = TOP_LEVEL_TABS.subList(midIndex, TOP_LEVEL_TABS.size),
+                                selectedKey = navigationViewModel.topLevelBackStack.tabLevelKey as RootKey,
+                                onSelect = { navigationViewModel.topLevelBackStack.addKey(it) }
                             )
                         }
-                    }
+                    )
                 }
             }
-        }
+        },
     )
+}
+
+@Composable
+fun RowScope.NavTabSectionContent(
+    rootKeys: List<RootKey>,
+    selectedKey: RootKey,
+    onSelect: (key: RootKey) -> Unit,
+) {
+    rootKeys.forEachIndexed { index, rootKey ->
+        val isSelected =
+            selectedKey == rootKey
+        val tab = rootKey.getTab()
+        NavigationBarItem(
+            selected = isSelected,
+            onClick = { onSelect(rootKey) },
+            icon = {
+                Icon(
+                    imageVector = tab.icon,
+                    contentDescription = tab.label
+                )
+            },
+            label = {
+                Text(tab.label)
+            }
+        )
+    }
 }
 
 private fun RootKey.getTab(): Tab {
     return when (this) {
-        Create -> Tab.CREATE
         Insights -> Tab.INSIGHTS
         Logs -> Tab.LOGS
     }
