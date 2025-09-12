@@ -24,14 +24,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -40,6 +38,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSavedStateNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import androidx.navigation3.ui.rememberSceneSetupNavEntryDecorator
+import com.robgasp.dailylog.core.ui.BackgroundGradient
 import com.robgasp.dailylog.core.ui.BottomNavPanel
 import com.robgasp.dailylog.navigation.Create
 import com.robgasp.dailylog.navigation.NavigationViewModel
@@ -64,8 +63,6 @@ import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-
-val BottomNavHeight = 104.dp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -155,7 +152,7 @@ fun MainScreen() {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Transparent)
+                    .background(BackgroundGradient)
             ) {
                 NavigationWindow(
                     viewModel = navigationViewModel,
@@ -190,7 +187,10 @@ fun MainScreen() {
                         },
                         rightContent = {
                             NavTabSectionContent(
-                                rootKeys = TOP_LEVEL_TABS.subList(midIndex, TOP_LEVEL_TABS.size),
+                                rootKeys = TOP_LEVEL_TABS.subList(
+                                    midIndex,
+                                    TOP_LEVEL_TABS.size
+                                ),
                                 selectedKey = navigationViewModel.topLevelBackStack.tabLevelKey as RootKey,
                                 onSelect = { navigationViewModel.topLevelBackStack.addKey(it) }
                             )
