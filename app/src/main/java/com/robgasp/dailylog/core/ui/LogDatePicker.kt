@@ -40,7 +40,7 @@ fun LogDatePicker(
     onPick: (LocalDate) -> Unit,
     onDismiss: () -> Unit
 ) {
-    val tz = TimeZone.currentSystemDefault()
+    val tz = TimeZone.UTC
     val startOfTheDay: Long = if (initialDate == null) {
         val now = Clock.System.now()
         val local = now.toLocalDateTime(tz)
