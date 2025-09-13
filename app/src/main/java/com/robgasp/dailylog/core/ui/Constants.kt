@@ -6,6 +6,8 @@ import androidx.compose.ui.unit.dp
 
 val navPanelWithCutoutHeight = 104.dp
 val navPanelWithCutoutFabSize = 56.dp
+val topBarHeight = 72.dp
+val topBarIconSize = 32.dp
 
 val bgGradientStart = Color(0xFF151D4F)
 val bgGradientMiddle = Color(0xFF161E5B)

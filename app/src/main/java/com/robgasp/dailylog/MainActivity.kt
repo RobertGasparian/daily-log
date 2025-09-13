@@ -2,6 +2,7 @@ package com.robgasp.dailylog
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedVisibility
@@ -122,6 +123,7 @@ fun MainScreen() {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val navigationViewModel: NavigationViewModel = viewModel()
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
     val showNavigationBar = navigationViewModel.topLevelBackStack.currentKey !is ScreenKey
 
@@ -129,6 +131,7 @@ fun MainScreen() {
         topBar = {
             TopBar(
                 screenTitle = navigationViewModel.topLevelBackStack.currentKey.appBarTitle,
+                hasBackAction = navigationViewModel.topLevelBackStack.currentKey !is RootKey,
                 onAvatarClick = {
                     scope.launch {
                         showDismissableSnackBar(snackbarHostState, "Profile clicked") {
@@ -142,6 +145,9 @@ fun MainScreen() {
                             DoNothing
                         }
                     }
+                },
+                onBackClick = {
+                    backDispatcher?.onBackPressed()
                 }
             )
         },

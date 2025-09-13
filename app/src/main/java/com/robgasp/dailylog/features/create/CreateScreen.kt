@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -107,6 +108,7 @@ fun CreateScreen(
             Spacer(Modifier.width(16.dp))
             Text(
                 text = state.time.toString(),
+                color = Color.White,
                 modifier = Modifier
                     .weight(1f)
                     .align(Alignment.CenterVertically)
@@ -122,6 +124,7 @@ fun CreateScreen(
             Spacer(Modifier.width(16.dp))
             Text(
                 text = state.day.toString(),
+                color = Color.White,
                 modifier = Modifier
                     .weight(1f)
                     .align(Alignment.CenterVertically)

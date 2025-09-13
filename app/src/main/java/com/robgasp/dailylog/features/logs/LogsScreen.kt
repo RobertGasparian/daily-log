@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,9 +22,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -60,7 +58,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         when (state.loadingStatus) {
             LogsViewModel.UIState.Status.LOADING -> {
@@ -69,7 +67,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
 
             LogsViewModel.UIState.Status.SUCCESS -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 ) {
                     state.sections.forEach { section ->
                         stickyHeader(key = section.date) {
@@ -88,7 +86,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                                 ) {
                                     Text(
                                         text = section.title,
-                                        style = MaterialTheme.typography.labelLarge,
+                                        style = MaterialTheme.typography.titleLarge,
                                         color = Color.White,
                                         modifier = Modifier
                                             .weight(1f)
@@ -100,7 +98,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                                         modifier = Modifier.padding(horizontal = 4.dp)
                                     )
                                     Icon(
-                                        imageVector = Icons.Filled.ArrowDropDown,
+                                        imageVector = Icons.Filled.KeyboardArrowDown,
                                         contentDescription = "Collapse/Expand Arrow",
                                         tint = Color.White,
                                         modifier = Modifier
@@ -169,18 +167,19 @@ fun LogItem(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.tag),
+                painter = painterResource(id = R.drawable.ic_tag),
                 contentDescription = "Tag",
                 tint = Color.White
             )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = log.title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
@@ -188,12 +187,13 @@ fun LogItem(
         Spacer(Modifier.height(8.dp))
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = log.logDate.toString(),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = Color.White
             )
             HorizontalDotSpacer(
@@ -204,7 +204,7 @@ fun LogItem(
             )
             Text(
                 text = log.logTime.toString(),
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
