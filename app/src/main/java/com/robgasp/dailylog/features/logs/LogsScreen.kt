@@ -37,23 +37,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.robgasp.dailylog.R
 import com.robgasp.dailylog.core.ui.ErrorDialog
 import com.robgasp.dailylog.core.ui.HorizontalDotSpacer
-import com.robgasp.dailylog.model.DLog
 
 @Composable
-fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: String) -> Unit) {
+fun LogsScreen(
+    vm: LogsViewModel,
+    modifier: Modifier = Modifier,
+    navigateToLogDetails: (id: String) -> Unit
+) {
     val state by vm.uiState.collectAsStateWithLifecycle()
     LaunchedEffect(vm) {
         vm.events.collect {
             when (it) {
-                is LogsViewModel.Navigate -> onNext(it.logId)
+                is LogsViewModel.Navigate -> navigateToLogDetails(it.logId)
             }
         }
     }
+    LogsScreen(
+        state = state,
+        modifier = modifier,
+        interactions = vm.intents
+    )
+}
+
+interface LogsScreenIntents {
+    fun onOpenDetailedLog(id: String)
+    fun onToggleGroup(index: Int)
+    fun onErrorDismiss()
+}
+
+@Composable
+fun LogsScreen(
+    state: LogsViewModel.UIState,
+    modifier: Modifier = Modifier,
+    interactions: LogsScreenIntents? = null,
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -69,8 +92,8 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                 ) {
-                    state.sections.forEach { section ->
-                        stickyHeader(key = section.date) {
+                    state.sections.forEachIndexed { index, section ->
+                        stickyHeader(key = section.title) {
                             val collapseIconRotation by animateFloatAsState(
                                 targetValue = if (section.isCollapsed) -90f else 0f,
                                 label = "collapseIconRotation"
@@ -105,9 +128,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                                             .size(32.dp)
                                             .padding(4.dp)
                                             .rotate(collapseIconRotation)
-                                            .clickable {
-                                                vm.toggleGroup(section.date)
-                                            }
+                                            .clickable { interactions?.onToggleGroup(index) }
                                     )
                                 }
                             }
@@ -123,9 +144,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                                 exit = shrinkVertically() + fadeOut()
                             ) {
                                 Column(Modifier.fillMaxSize()) {
-                                    LogItem(log) {
-                                        vm.openDetailedLog(log)
-                                    }
+                                    LogItem(log) { interactions?.onOpenDetailedLog(log.id) }
                                     Spacer(
                                         Modifier.height(8.dp)
                                     )
@@ -141,7 +160,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
                     title = "Loading Error",
                     actionLabel = "Ok",
                     cancelable = false,
-                    onAction = vm::errorDismiss
+                    onAction = { interactions?.onErrorDismiss() }
                 )
             }
         }
@@ -150,7 +169,7 @@ fun LogsScreen(vm: LogsViewModel, modifier: Modifier = Modifier, onNext: (id: St
 
 @Composable
 fun LogItem(
-    log: DLog,
+    log: LogsViewModel.UIState.UILog,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -192,7 +211,7 @@ fun LogItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = log.logDate.toString(),
+                text = log.date,
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White
             )
@@ -203,11 +222,20 @@ fun LogItem(
                 dotColor = Color.White,
             )
             Text(
-                text = log.logTime.toString(),
+                text = log.time,
                 style = MaterialTheme.typography.bodyLarge,
                 color = Color.White,
                 modifier = Modifier.weight(1f)
             )
         }
     }
+}
+
+@Preview
+@Composable
+private fun LogsScreenPreview() {
+    LogsScreen(
+        state = LogsViewModel.UIState.initialState(),
+        interactions = null
+    )
 }
