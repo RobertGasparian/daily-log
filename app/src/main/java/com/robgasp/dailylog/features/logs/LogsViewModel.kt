@@ -5,15 +5,16 @@ import com.robgasp.dailylog.core.BaseViewModel
 import com.robgasp.dailylog.core.misc.Mapper
 import com.robgasp.dailylog.domain.GetDLogsListUseCase
 import com.robgasp.dailylog.domain.SeparateToDailyGroupsUseCase
-import com.robgasp.dailylog.features.logs.LogsViewModel.InternalState.InternalStatus
+import com.robgasp.dailylog.features.logs.LogsViewModel.ModelState.InternalStatus
 import com.robgasp.dailylog.model.DLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
-import java.util.SortedMap
 
 // TODO: error handling is absent for now
 @HiltViewModel
@@ -21,15 +22,56 @@ class LogsViewModel @Inject constructor(
     private val getLogsListUC: GetDLogsListUseCase,
     private val separateToDailyGroupsUC: SeparateToDailyGroupsUseCase,
     private val dateToGroupTitleMapper: Mapper<LocalDate, String>,
-) : BaseViewModel<LogsViewModel.UIState, LogsViewModel.Event>(UIState.initialState()) {
+) : BaseViewModel<LogsViewModel.UIState, LogsViewModel.Event, LogsViewModel.Action, LogsScreenIntents>(
+    UIState.initialState()
+) {
 
-    private val internalState: MutableStateFlow<InternalState> =
-        MutableStateFlow(InternalState.initialState())
+    private val modelState: MutableStateFlow<ModelState> =
+        MutableStateFlow(ModelState.initialState())
 
     init {
-        viewModelScope.launch {
-            getLogsListUC().collect { logs ->
-                internalState.update {
+        loadData()
+        convertModelToUIState()
+    }
+
+    override val intents: LogsScreenIntents = object : LogsScreenIntents {
+        override fun onOpenDetailedLog(id: String) = fire(Action.OpenDetailedLog(id))
+        override fun onToggleGroup(index: Int) = fire(Action.ToggleGroup(index))
+        override fun onErrorDismiss() = fire(Action.ErrorDismiss)
+    }
+
+    sealed interface Action {
+        data class OpenDetailedLog(val id: String) : Action
+        data class ToggleGroup(val index: Int) : Action
+        data object ErrorDismiss : Action
+    }
+
+    override fun reduce(action: Action) {
+        when (action) {
+            Action.ErrorDismiss -> {
+                update { it.copy(loadingStatus = UIState.Status.SUCCESS) }
+            }
+
+            is Action.OpenDetailedLog -> {
+                post(Navigate(action.id))
+            }
+
+            is Action.ToggleGroup -> {
+                modelState.update {
+                    it.copy(
+                        sections = it.sections.mapIndexed { i, section ->
+                            if (action.index == i) section.copy(isCollapsed = !section.isCollapsed) else section
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun loadData() {
+        getLogsListUC()
+            .onEach { logs ->
+                modelState.update {
                     it.copy(
                         sections = separateToDailyGroupsUC(logs).toInternalSectionList(
                             prevCollapsedSections = it.getAllCollapsedDates()
@@ -38,9 +80,13 @@ class LogsViewModel @Inject constructor(
                     )
                 }
             }
-        }
-        viewModelScope.launch {
-            internalState.collect { internalState ->
+            .catch { ex -> modelState.update { it.copy(loadingStatus = InternalStatus.ERROR) } }
+            .launchIn(viewModelScope)
+    }
+
+    private fun convertModelToUIState() {
+        modelState
+            .onEach { internalState ->
                 update { uiState ->
                     uiState.copy(
                         sections = internalState.sections.toUIStateSectionList(
@@ -50,88 +96,23 @@ class LogsViewModel @Inject constructor(
                     )
                 }
             }
-        }
+            .launchIn(viewModelScope)
     }
 
-    val intents: LogsScreenIntents = object : LogsScreenIntents {
-        override fun onOpenDetailedLog(id: String) {
-            post(Navigate(id))
-        }
-
-        override fun onToggleGroup(index: Int) {
-            internalState.update {
-                it.copy(
-                    sections = it.sections.mapIndexed { i, section ->
-                        if (index == i) section.copy(isCollapsed = !section.isCollapsed) else section
-                    }
-                )
-            }
-        }
-
-        override fun onErrorDismiss() {
-            update { it.copy(loadingStatus = UIState.Status.SUCCESS) }
-        }
-    }
-
-    private fun InternalStatus.toUIStateStatus(): UIState.Status {
-        return when (this) {
-            InternalStatus.LOADING -> UIState.Status.LOADING
-            InternalStatus.SUCCESS -> UIState.Status.SUCCESS
-            InternalStatus.ERROR -> UIState.Status.ERROR
-        }
-    }
-
-    private fun SortedMap<LocalDate, List<DLog>>.toInternalSectionList(
-        prevCollapsedSections: Set<LocalDate> = emptySet(),
-    ): List<InternalState.InternalSection> {
-        return entries.toList().map { (date, logs) ->
-            InternalState.InternalSection(
-                date = date,
-                logs = logs,
-                isCollapsed = prevCollapsedSections.contains(date)
-            )
-        }
-    }
-
-    private fun List<InternalState.InternalSection>.toUIStateSectionList(
-        dateToGroupTitleMapper: Mapper<LocalDate, String>,
-    ): List<UIState.Section> {
-        return this.map {
-            UIState.Section(
-                title = dateToGroupTitleMapper.mapTo(it.date),
-                isCollapsed = it.isCollapsed,
-                logs = it.logs.toUIStateLogList()
-            )
-        }
-    }
-
-    private fun List<DLog>.toUIStateLogList(): List<UIState.UILog> {
-        return this.map {
-            UIState.UILog(
-                id = it.id,
-                title = it.title,
-                description = it.description,
-                time = it.logTime.toString(), // TODO: Formal later on
-                date = it.logDate.toString(), // TODO: Formal later on
-            )
-        }
-    }
-
-
-    internal data class InternalState(
-        val sections: List<InternalSection>,
+    internal data class ModelState(
+        val sections: List<ModelSection>,
         val loadingStatus: InternalStatus,
     ) {
         companion object {
-            fun initialState(): InternalState {
-                return InternalState(
+            fun initialState(): ModelState {
+                return ModelState(
                     sections = emptyList(),
                     loadingStatus = InternalStatus.LOADING,
                 )
             }
         }
 
-        data class InternalSection(
+        data class ModelSection(
             val date: LocalDate,
             val isCollapsed: Boolean,
             val logs: List<DLog>,

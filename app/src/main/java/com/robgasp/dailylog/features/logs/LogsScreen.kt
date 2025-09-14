@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,10 +62,11 @@ fun LogsScreen(
     LogsScreen(
         state = state,
         modifier = modifier,
-        interactions = vm.intents
+        intents = vm.intents
     )
 }
 
+@Stable
 interface LogsScreenIntents {
     fun onOpenDetailedLog(id: String)
     fun onToggleGroup(index: Int)
@@ -75,7 +77,7 @@ interface LogsScreenIntents {
 fun LogsScreen(
     state: LogsViewModel.UIState,
     modifier: Modifier = Modifier,
-    interactions: LogsScreenIntents? = null,
+    intents: LogsScreenIntents? = null,
 ) {
     Box(
         modifier = modifier
@@ -128,7 +130,7 @@ fun LogsScreen(
                                             .size(32.dp)
                                             .padding(4.dp)
                                             .rotate(collapseIconRotation)
-                                            .clickable { interactions?.onToggleGroup(index) }
+                                            .clickable { intents?.onToggleGroup(index) }
                                     )
                                 }
                             }
@@ -144,7 +146,7 @@ fun LogsScreen(
                                 exit = shrinkVertically() + fadeOut()
                             ) {
                                 Column(Modifier.fillMaxSize()) {
-                                    LogItem(log) { interactions?.onOpenDetailedLog(log.id) }
+                                    LogItem(log) { intents?.onOpenDetailedLog(log.id) }
                                     Spacer(
                                         Modifier.height(8.dp)
                                     )
@@ -160,7 +162,7 @@ fun LogsScreen(
                     title = "Loading Error",
                     actionLabel = "Ok",
                     cancelable = false,
-                    onAction = { interactions?.onErrorDismiss() }
+                    onAction = { intents?.onErrorDismiss() }
                 )
             }
         }
@@ -236,6 +238,6 @@ fun LogItem(
 private fun LogsScreenPreview() {
     LogsScreen(
         state = LogsViewModel.UIState.initialState(),
-        interactions = null
+        intents = null
     )
 }

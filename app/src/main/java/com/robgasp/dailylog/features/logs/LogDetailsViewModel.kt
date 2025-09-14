@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class LogDetailsViewModel @AssistedInject constructor(
     @Assisted private val logId: String,
     private val getDLogByIdUC: GetDLogByIdUseCase,
-) : BaseViewModel<LogDetailsViewModel.UIState, LogDetailsViewModel.Event>(UIState.initialState()) {
+) : BaseViewModel<LogDetailsViewModel.UIState, LogDetailsViewModel.Event, LogDetailsViewModel.Action, LogDetailsScreenIntents>(UIState.initialState()) {
 
     init {
         viewModelScope.launch {
@@ -38,6 +38,15 @@ class LogDetailsViewModel @AssistedInject constructor(
     interface Factory {
         fun create(id: String): LogDetailsViewModel
     }
+
+    override val intents: LogDetailsScreenIntents
+        get() = object : LogDetailsScreenIntents {}
+
+    override fun reduce(action: Action) {
+        TODO("Not yet implemented")
+    }
+
+    sealed interface Action
 
     data class UIState(
         val title: String,

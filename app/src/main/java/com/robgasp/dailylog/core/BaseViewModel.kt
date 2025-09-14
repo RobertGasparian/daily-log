@@ -8,17 +8,31 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
-abstract class BaseViewModel<State, Event>(initialState: State) : ViewModel() {
+abstract class BaseViewModel<State, Event, Action, Intents>(initialState: State) : ViewModel() {
 
     protected val _uiState = MutableStateFlow(initialState)
     val uiState: StateFlow<State> = _uiState.asStateFlow()
 
     protected val _events = MutableSharedFlow<Event>()
     val events: SharedFlow<Event> = _events.asSharedFlow()
+
+    protected val actions: MutableSharedFlow<Action> = MutableSharedFlow(extraBufferCapacity = 32)
+
+    protected abstract fun reduce(action: Action)
+
+    abstract val intents: Intents
+
+    init {
+        actions
+            .onEach(::reduce)
+            .launchIn(viewModelScope)
+    }
 
     protected fun update(block: (State) -> State) {
         _uiState.update {
@@ -31,6 +45,10 @@ abstract class BaseViewModel<State, Event>(initialState: State) : ViewModel() {
             Timber.i("post event: $event")
             _events.emit(event)
         }
+    }
+
+    protected fun fire(action: Action) {
+        viewModelScope.launch { actions.emit(action) }
     }
 
     init {

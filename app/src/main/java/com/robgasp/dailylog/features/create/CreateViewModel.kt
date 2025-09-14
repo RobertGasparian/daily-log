@@ -3,7 +3,6 @@ package com.robgasp.dailylog.features.create
 import androidx.lifecycle.viewModelScope
 import com.robgasp.dailylog.core.BaseViewModel
 import com.robgasp.dailylog.domain.SaveDLogUseCase
-import com.robgasp.dailylog.model.DLog
 import com.robgasp.dailylog.core.provider.DateTimeProvider
 import com.robgasp.dailylog.core.misc.Validator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,45 +10,53 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import javax.inject.Inject
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 @HiltViewModel
 class CreateViewModel @Inject constructor(
     private val dateTimeProvider: DateTimeProvider,
     private val saveDLogUC: SaveDLogUseCase,
     private val logValidator: Validator<UIState>,
-) : BaseViewModel<CreateViewModel.UIState, CreateViewModel.Event>(UIState.initialState(dateTimeProvider)) {
+) : BaseViewModel<CreateViewModel.UIState, CreateViewModel.Event, CreateViewModel.Action, CreateScreenIntents>(UIState.initialState(dateTimeProvider)) {
 
-    fun updateTitle(text: String) {
-        update { it.copy(title = text) }
+    override val intents: CreateScreenIntents
+        get() = object : CreateScreenIntents {
+            override fun updateTitle(title: String) = fire(Action.UpdateTitle(title))
+            override fun updateDescription(description: String) = fire(Action.UpdateDescription(description))
+            override fun showTimePicker() = fire(Action.ShowTimePicker)
+            override fun showDatePicker() = fire(Action.ShowDatePicker)
+            override fun saveLog() = fire(Action.SaveLog)
+            override fun updateTime(time: LocalTime) = fire(Action.UpdateTime(time))
+            override fun updateDay(date: LocalDate) = fire(Action.UpdateDay(date))
+            override fun dismissCurrentDialog() = fire(Action.DismissDialog)
+        }
+
+    sealed interface Action {
+        data object SaveLog : Action
+        data object DismissDialog : Action
+        data class UpdateTitle(val title: String) : Action
+        data class UpdateDescription(val description: String) : Action
+        data class UpdateTime(val time: LocalTime) : Action
+        data class UpdateDay(val day: LocalDate) : Action
+        data object ShowTimePicker : Action
+        data object ShowDatePicker : Action
     }
 
-    fun updateDescription(text: String) {
-        update { it.copy(description = text) }
+    override fun reduce(action: Action) {
+        when (action) {
+            Action.DismissDialog -> update { it.copy(dialogStatus = UIState.DialogStatus.NONE) }
+            Action.ShowDatePicker -> update { it.copy(dialogStatus = UIState.DialogStatus.DATE_PICKER) }
+            Action.ShowTimePicker -> update { it.copy(dialogStatus = UIState.DialogStatus.TIME_PICKER) }
+            Action.SaveLog -> saveLog()
+            is Action.UpdateDay -> update { it.copy(day = action.day) }
+            is Action.UpdateDescription -> {
+                update { it.copy(description = action.description) }
+            }
+            is Action.UpdateTime -> update { it.copy(time = action.time) }
+            is Action.UpdateTitle -> update { it.copy(title = action.title) }
+        }
     }
 
-    fun updateTime(time: LocalTime) {
-        update { it.copy(time = time) }
-    }
-
-    fun updateDay(day: LocalDate) {
-        update { it.copy(day = day) }
-    }
-
-    fun showTimePicker() {
-        update { it.copy(dialogStatus = UIState.DialogStatus.TIME_PICKER) }
-    }
-
-    fun showDatePicker() {
-        update { it.copy(dialogStatus = UIState.DialogStatus.DATE_PICKER) }
-    }
-
-    fun dismissCurrentDialog() {
-        update { it.copy(dialogStatus = UIState.DialogStatus.NONE) }
-    }
-
-    fun saveLog() {
+    private fun saveLog() {
         val report = logValidator.isValid(uiState.value)
         when (report) {
             is Validator.Invalid -> {
@@ -97,18 +104,3 @@ class CreateViewModel @Inject constructor(
     data object Saved : Event
     data class Error(val message: String? = null) : Event
 }
-
-@OptIn(ExperimentalUuidApi::class)
-fun CreateViewModel.UIState.toDLog(dateTimeProvider: DateTimeProvider): DLog {
-    val id = Uuid.Companion.random().toString()
-    return DLog(
-        id = id,
-        title = this.title,
-        description = this.description,
-        logTime = this.time,
-        logDate = this.day,
-        creationDate = dateTimeProvider.currentDateTime(),
-        modificationDate = null
-    )
-}
-

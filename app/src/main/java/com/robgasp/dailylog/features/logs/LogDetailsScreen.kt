@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,6 +19,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun LogDetailsScreen(vm: LogDetailsViewModel, modifier: Modifier = Modifier) {
     val state by vm.uiState.collectAsStateWithLifecycle()
+    LogDetailsScreen(state, modifier, vm.intents)
+}
+
+@Composable
+fun LogDetailsScreen(state: LogDetailsViewModel.UIState, modifier: Modifier = Modifier, intents: LogDetailsScreenIntents? = null) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -58,3 +64,6 @@ fun LogDetailsScreen(vm: LogDetailsViewModel, modifier: Modifier = Modifier) {
         }
     }
 }
+
+@Stable
+interface LogDetailsScreenIntents

@@ -19,10 +19,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -32,6 +34,8 @@ import com.robgasp.dailylog.core.ui.LogDatePicker
 import com.robgasp.dailylog.core.ui.LogTimePicker
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 import timber.log.Timber
 
 @Composable
@@ -58,6 +62,17 @@ fun CreateScreen(
             }
         }
     }
+    CreateScreen(state, snackbarHostState, focusManager, modifier, vm.intents)
+}
+
+@Composable
+fun CreateScreen(
+    state: CreateViewModel.UIState,
+    snackbarHostState: SnackbarHostState,
+    focusManager: FocusManager,
+    modifier: Modifier = Modifier,
+    intents: CreateScreenIntents? = null
+) {
     // TODO: research if it is ok to create box just for the SnackbarHost at the bottom
     Box(
         modifier
@@ -80,7 +95,7 @@ fun CreateScreen(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = state.title,
-            onValueChange = { vm.updateTitle(it) },
+            onValueChange = { intents?.updateTitle(it) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = { focusManager.clearFocus() }
@@ -91,7 +106,7 @@ fun CreateScreen(
         TextField(
             modifier = Modifier.fillMaxWidth(),
             value = state.description,
-            onValueChange = { vm.updateDescription(it) },
+            onValueChange = { intents?.updateDescription(it) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = { focusManager.clearFocus() }
@@ -101,7 +116,7 @@ fun CreateScreen(
         Spacer(Modifier.height(16.dp))
         Row {
             Button(onClick = {
-                vm.showTimePicker()
+                intents?.showTimePicker()
             }) {
                 Text("Pick a time")
             }
@@ -117,7 +132,7 @@ fun CreateScreen(
         Spacer(Modifier.height(10.dp))
         Row {
             Button(onClick = {
-                vm.showDatePicker()
+                intents?.showDatePicker()
             }) {
                 Text("Pick a day")
             }
@@ -130,7 +145,7 @@ fun CreateScreen(
                     .align(Alignment.CenterVertically)
             )
         }
-        Button(onClick = vm::saveLog) {
+        Button(onClick = { intents?.saveLog() }) {
             Text("Save")
         }
         Spacer(Modifier.weight(1f))
@@ -141,10 +156,10 @@ fun CreateScreen(
                 initialTime = state.time,
                 is24Hour = true,
                 onPick = {
-                    vm.updateTime(it)
+                    intents?.updateTime(it)
                 },
                 onDismiss = {
-                    vm.dismissCurrentDialog()
+                    intents?.dismissCurrentDialog()
                 }
             )
         }
@@ -153,10 +168,10 @@ fun CreateScreen(
             LogDatePicker(
                 initialDate = state.day,
                 onPick = {
-                    vm.updateDay(it)
+                    intents?.updateDay(it)
                 },
                 onDismiss = {
-                    vm.dismissCurrentDialog()
+                    intents?.dismissCurrentDialog()
                 }
             )
         }
@@ -165,4 +180,16 @@ fun CreateScreen(
             DoNothing
         }
     }
+}
+
+@Stable
+interface CreateScreenIntents {
+    fun updateTitle(title: String)
+    fun updateDescription(description: String)
+    fun showTimePicker()
+    fun showDatePicker()
+    fun saveLog()
+    fun updateTime(time: LocalTime)
+    fun updateDay(date: LocalDate)
+    fun dismissCurrentDialog()
 }
