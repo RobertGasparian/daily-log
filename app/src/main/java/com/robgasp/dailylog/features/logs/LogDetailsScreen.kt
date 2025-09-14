@@ -58,7 +58,7 @@ fun LogDetailsScreen(state: LogDetailsViewModel.UIState, modifier: Modifier = Mo
         if (state.modifiedAt != null) {
             Spacer(Modifier.height(16.dp))
             Text(
-                text = state.modifiedAt!!,
+                text = state.modifiedAt,
                 fontSize = MaterialTheme.typography.titleLarge.fontSize,
             )
         }
