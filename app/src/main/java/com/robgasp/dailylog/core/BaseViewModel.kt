@@ -29,9 +29,21 @@ abstract class BaseViewModel<State, Event, Action, Intents>(initialState: State)
     abstract val intents: Intents
 
     init {
+        Timber.d("init: $this")
         actions
-            .onEach(::reduce)
+            .onEach {
+                Timber.i("action: $it")
+                reduce(it)
+            }
             .launchIn(viewModelScope)
+
+        uiState.onEach {
+            Timber.i("state: $it")
+        }.launchIn(viewModelScope)
+
+        events.onEach {
+            Timber.i("event: $it")
+        }.launchIn(viewModelScope)
     }
 
     protected fun update(block: (State) -> State) {
@@ -42,17 +54,12 @@ abstract class BaseViewModel<State, Event, Action, Intents>(initialState: State)
 
     protected fun post(event: Event) {
         viewModelScope.launch {
-            Timber.i("post event: $event")
             _events.emit(event)
         }
     }
 
     protected fun fire(action: Action) {
         viewModelScope.launch { actions.emit(action) }
-    }
-
-    init {
-        Timber.d("init: $this")
     }
 
     override fun onCleared() {
