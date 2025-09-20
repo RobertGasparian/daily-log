@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.features.logs
+package com.robgasp.dailylog.features.logs.details
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

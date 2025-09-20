@@ -1,4 +1,4 @@
-package com.robgasp.dailylog.features.logs
+package com.robgasp.dailylog.features.logs.details
 
 import androidx.lifecycle.viewModelScope
 import com.robgasp.dailylog.core.BaseViewModel

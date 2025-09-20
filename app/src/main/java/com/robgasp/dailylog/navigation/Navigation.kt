@@ -20,7 +20,7 @@ sealed interface RootKey : NavKey
 sealed interface LogsKey : NavKey
 
 
-sealed interface InsightsKey : NavKey
+sealed interface HomeKey : NavKey
 
 // TODO: refactor the hardcoded strings to resources
 @Serializable
@@ -30,28 +30,22 @@ data object Logs : LogsKey, RootKey {
 }
 
 @Serializable
-data object Create : ScreenKey, NavKey {
+data object Create : HomeKey, RootKey {
     override val appBarTitle: String
         get() = "Create New Log"
 }
 
 @Serializable
-data object Insights : InsightsKey, RootKey {
-    override val appBarTitle: String
-        get() = "Insights"
-}
-
-@Serializable
 data class LogDetails(
     val logId: String,
-) : LogsKey {
+) : ScreenKey, NavKey {
     override val appBarTitle: String
         get() = "Log Details"
 }
 
 val TOP_LEVEL_TABS: List<RootKey> = listOf(
+    Create,
     Logs,
-    Insights,
 )
 
 

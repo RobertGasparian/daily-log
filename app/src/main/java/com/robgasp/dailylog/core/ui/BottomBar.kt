@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -103,5 +103,5 @@ fun BoxScope.BottomNavPanel(
 
 enum class Tab(val icon: ImageVector, val label: String) {
     LOGS(Icons.AutoMirrored.Filled.List, "Logs"),
-    INSIGHTS(Icons.Filled.Star, "Insights"),
+    HOME(Icons.Filled.Home, "Home"),
 }

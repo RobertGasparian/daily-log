@@ -44,13 +44,10 @@ import com.robgasp.dailylog.core.ui.BottomNavPanel
 import com.robgasp.dailylog.navigation.Create
 import com.robgasp.dailylog.navigation.NavigationViewModel
 import com.robgasp.dailylog.features.logs.LogsScreen
-import com.robgasp.dailylog.navigation.Insights
 import com.robgasp.dailylog.navigation.Logs
 import com.robgasp.dailylog.features.create.CreateScreen
 import com.robgasp.dailylog.features.create.CreateViewModel
-import com.robgasp.dailylog.features.insights.InsightsScreen
-import com.robgasp.dailylog.features.insights.InsightsViewModel
-import com.robgasp.dailylog.features.logs.LogDetailsScreen
+import com.robgasp.dailylog.features.logs.details.LogDetailsScreen
 import com.robgasp.dailylog.features.logs.LogsViewModel
 import com.robgasp.dailylog.navigation.LogDetails
 import com.robgasp.dailylog.navigation.RootKey
@@ -58,7 +55,7 @@ import com.robgasp.dailylog.navigation.TOP_LEVEL_TABS
 import com.robgasp.dailylog.ui.theme.DailyLogTheme
 import com.robgasp.dailylog.core.ui.Tab
 import com.robgasp.dailylog.core.ui.TopBar
-import com.robgasp.dailylog.features.logs.LogDetailsViewModel
+import com.robgasp.dailylog.features.logs.details.LogDetailsViewModel
 import com.robgasp.dailylog.navigation.ScreenKey
 import com.robgasp.dailylog.util.DoNothing
 import com.robgasp.dailylog.util.showDismissableSnackBar
@@ -83,7 +80,6 @@ class MainActivity : ComponentActivity() {
 fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewModel = viewModel()) {
     val logsVM: LogsViewModel = hiltViewModel()
     val createVM: CreateViewModel = hiltViewModel()
-    val insightsVM: InsightsViewModel = hiltViewModel()
     NavDisplay(
         modifier = modifier,
         backStack = viewModel.topLevelBackStack.backStack,
@@ -101,9 +97,6 @@ fun NavigationWindow(modifier: Modifier = Modifier, viewModel: NavigationViewMod
             }
             entry<Create> {
                 CreateScreen(vm = createVM)
-            }
-            entry<Insights> {
-                InsightsScreen(insightsVM)
             }
             entry<LogDetails> {
                 val vm = hiltViewModel<LogDetailsViewModel, LogDetailsViewModel.Factory>(
@@ -236,7 +229,7 @@ fun RowScope.NavTabSectionContent(
 
 private fun RootKey.getTab(): Tab {
     return when (this) {
-        Insights -> Tab.INSIGHTS
+        Create -> Tab.HOME
         Logs -> Tab.LOGS
     }
 }
