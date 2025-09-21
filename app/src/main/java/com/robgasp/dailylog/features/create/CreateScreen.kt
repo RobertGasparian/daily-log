@@ -123,7 +123,7 @@ fun CreateScreen(
             }
             Spacer(Modifier.width(16.dp))
             Text(
-                text = state.time.toString(),
+                text = state.time,
                 color = Color.White,
                 modifier = Modifier
                     .weight(1f)
@@ -139,7 +139,7 @@ fun CreateScreen(
             }
             Spacer(Modifier.width(16.dp))
             Text(
-                text = state.day.toString(),
+                text = state.day,
                 color = Color.White,
                 modifier = Modifier
                     .weight(1f)
