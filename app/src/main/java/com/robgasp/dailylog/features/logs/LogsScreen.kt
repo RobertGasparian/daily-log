@@ -237,7 +237,91 @@ fun LogItem(
 @Composable
 private fun LogsScreenPreview() {
     LogsScreen(
-        state = LogsViewModel.UIState.initialState(),
+        state = LogsViewModel.UIState(
+            loadingStatus = LogsViewModel.UIState.Status.SUCCESS,
+            sections = listOf(
+                LogsViewModel.UIState.Section(
+                    title = "Today",
+                    logs = listOf(
+                        LogsViewModel.UIState.UILog(
+                            id = "1",
+                            title = "Log 1",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        ),
+                        LogsViewModel.UIState.UILog(
+                            id = "2",
+                            title = "Log 2",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        )
+                    ),
+                    isCollapsed = false
+                ),
+                LogsViewModel.UIState.Section(
+                    title = "Yesterday",
+                    logs = listOf(
+                        LogsViewModel.UIState.UILog(
+                            id = "3",
+                            title = "Log 3",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        ),
+                        LogsViewModel.UIState.UILog(
+                            id = "4",
+                            title = "Log 4",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        )
+                    ),
+                    isCollapsed = false
+                ),
+                LogsViewModel.UIState.Section(
+                    title = "11/22/2021",
+                    logs = listOf(
+                        LogsViewModel.UIState.UILog(
+                            id = "6",
+                            title = "Log 6",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        ),
+                        LogsViewModel.UIState.UILog(
+                            id = "7",
+                            title = "Log 7",
+                            description = "",
+                            time = "14:00",
+                            date = "11/22/2021"
+                        )
+                    ),
+                    isCollapsed = true
+                ),
+                LogsViewModel.UIState.Section(
+                    title = "10/22/2021",
+                    logs = listOf(
+                        LogsViewModel.UIState.UILog(
+                            id = "8",
+                            title = "Log 8",
+                            description = "",
+                            time = "14:00",
+                            date = "10/22/2021"
+                        ),
+                        LogsViewModel.UIState.UILog(
+                            id = "9",
+                            title = "Log 9",
+                            description = "",
+                            time = "14:00",
+                            date = "10/22/2021"
+                        )
+                    ),
+                    isCollapsed = false
+                )
+            )
+        ),
         intents = null
     )
 }

@@ -1,37 +1,36 @@
 package com.robgasp.dailylog.features.logs
 
 import androidx.lifecycle.viewModelScope
-import com.robgasp.dailylog.core.BaseViewModel
+import com.robgasp.dailylog.core.ModelStateViewModel
 import com.robgasp.dailylog.core.misc.Mapper
 import com.robgasp.dailylog.domain.GetDLogsListUseCase
 import com.robgasp.dailylog.domain.SeparateToDailyGroupsUseCase
-import com.robgasp.dailylog.features.logs.LogsViewModel.ModelState.InternalStatus
+import com.robgasp.dailylog.features.logs.LogsViewModel.ModelState.ModelStatus
+import com.robgasp.dailylog.features.logs.di.LogsModule.Companion.GROUP_TITLE_MAPPER
 import com.robgasp.dailylog.model.DLog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
+import javax.inject.Named
 
 // TODO: error handling is absent for now
 @HiltViewModel
 class LogsViewModel @Inject constructor(
     private val getLogsListUC: GetDLogsListUseCase,
     private val separateToDailyGroupsUC: SeparateToDailyGroupsUseCase,
-    private val dateToGroupTitleMapper: Mapper<LocalDate, String>,
-) : BaseViewModel<LogsViewModel.UIState, LogsViewModel.Event, LogsViewModel.Action, LogsScreenIntents>(
-    UIState.initialState()
+    private val timeToTextMapper: Mapper<LocalTime, String>,
+    @param:Named(GROUP_TITLE_MAPPER) private val dateToGroupTitleMapper: Mapper<LocalDate, String>,
+) : ModelStateViewModel<LogsViewModel.UIState, LogsViewModel.Event, LogsViewModel.Action, LogsScreenIntents, LogsViewModel.ModelState>(
+    UIState.initialState(),
+    ModelState.initialState()
 ) {
-
-    private val modelState: MutableStateFlow<ModelState> =
-        MutableStateFlow(ModelState.initialState())
-
     init {
         loadData()
-        convertModelToUIState()
     }
 
     override val intents: LogsScreenIntents = object : LogsScreenIntents {
@@ -76,38 +75,23 @@ class LogsViewModel @Inject constructor(
                         sections = separateToDailyGroupsUC(logs).toInternalSectionList(
                             prevCollapsedSections = it.getAllCollapsedDates()
                         ),
-                        loadingStatus = InternalStatus.SUCCESS
+                        loadingStatus = ModelStatus.SUCCESS
                     )
                 }
             }
-            .catch { ex -> modelState.update { it.copy(loadingStatus = InternalStatus.ERROR) } }
+            .catch { ex -> modelState.update { it.copy(loadingStatus = ModelStatus.ERROR) } }
             .launchIn(viewModelScope)
     }
 
-    private fun convertModelToUIState() {
-        modelState
-            .onEach { internalState ->
-                update { uiState ->
-                    uiState.copy(
-                        sections = internalState.sections.toUIStateSectionList(
-                            dateToGroupTitleMapper
-                        ),
-                        loadingStatus = internalState.loadingStatus.toUIStateStatus(),
-                    )
-                }
-            }
-            .launchIn(viewModelScope)
-    }
-
-    internal data class ModelState(
+    data class ModelState(
         val sections: List<ModelSection>,
-        val loadingStatus: InternalStatus,
+        val loadingStatus: ModelStatus,
     ) {
         companion object {
             fun initialState(): ModelState {
                 return ModelState(
                     sections = emptyList(),
-                    loadingStatus = InternalStatus.LOADING,
+                    loadingStatus = ModelStatus.LOADING,
                 )
             }
         }
@@ -125,7 +109,7 @@ class LogsViewModel @Inject constructor(
                 .toSet()
         }
 
-        enum class InternalStatus {
+        enum class ModelStatus {
             LOADING,
             SUCCESS,
             ERROR
@@ -165,6 +149,18 @@ class LogsViewModel @Inject constructor(
             ERROR
         }
     }
+
+    override val converter: (ModelState) -> UIState
+        get() = { modelState ->
+            UIState(
+                sections = modelState.sections.toUIStateSectionList(
+                    dateToGroupTitleMapper,
+                    timeToTextMapper,
+                ),
+                loadingStatus = modelState.loadingStatus.toUIStateStatus(),
+
+            )
+        }
 
     sealed interface Event
     data class Navigate(val logId: String) : Event

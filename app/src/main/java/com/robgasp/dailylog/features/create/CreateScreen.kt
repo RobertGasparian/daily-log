@@ -28,6 +28,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.robgasp.dailylog.core.ui.LogDatePicker
@@ -150,10 +151,10 @@ fun CreateScreen(
         }
         Spacer(Modifier.weight(1f))
     }
-    when (state.dialogStatus) {
-        CreateViewModel.UIState.DialogStatus.TIME_PICKER -> {
+    when (val status = state.dialogStatus) {
+        is CreateViewModel.UIState.DialogStatus.TimePicker -> {
             LogTimePicker(
-                initialTime = state.time,
+                initialTime = status.time,
                 is24Hour = true,
                 onPick = {
                     intents?.updateTime(it)
@@ -164,9 +165,9 @@ fun CreateScreen(
             )
         }
 
-        CreateViewModel.UIState.DialogStatus.DATE_PICKER -> {
+        is CreateViewModel.UIState.DialogStatus.DatePicker -> {
             LogDatePicker(
-                initialDate = state.day,
+                initialDate = status.day,
                 onPick = {
                     intents?.updateDay(it)
                 },
@@ -176,7 +177,7 @@ fun CreateScreen(
             )
         }
 
-        CreateViewModel.UIState.DialogStatus.NONE -> {
+        CreateViewModel.UIState.DialogStatus.None -> {
             DoNothing
         }
     }
@@ -192,4 +193,21 @@ interface CreateScreenIntents {
     fun updateTime(time: LocalTime)
     fun updateDay(date: LocalDate)
     fun dismissCurrentDialog()
+}
+
+@Preview
+@Composable
+private fun CreateScreenPreview() {
+    CreateScreen(
+        state = CreateViewModel.UIState(
+            title = "Create New Log",
+            description = "",
+            time = "14:00",
+            day = "11/22/2021",
+            dialogStatus = CreateViewModel.UIState.DialogStatus.None
+        ),
+        snackbarHostState = SnackbarHostState(),
+        focusManager = LocalFocusManager.current,
+        intents = null
+    )
 }

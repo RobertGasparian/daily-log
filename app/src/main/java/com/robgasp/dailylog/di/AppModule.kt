@@ -4,6 +4,8 @@ import com.robgasp.dailylog.core.LogDateTimeProvider
 import com.robgasp.dailylog.core.provider.DateTimeProvider
 import com.robgasp.dailylog.core.provider.InstantProvider
 import com.robgasp.dailylog.core.provider.LabelProvider
+import com.robgasp.dailylog.core.provider.LocaleProvider
+import com.robgasp.dailylog.core.provider.LocaleProviderImpl
 import com.robgasp.dailylog.core.provider.TimeZoneProvider
 import dagger.Module
 import dagger.Provides
@@ -26,4 +28,7 @@ object AppModule {
 
     @Provides
     fun providesLabelProvider(): LabelProvider = object : LabelProvider {}
+
+    @Provides
+    fun providesLocaleProvider(impl: LocaleProviderImpl): LocaleProvider = impl
 }

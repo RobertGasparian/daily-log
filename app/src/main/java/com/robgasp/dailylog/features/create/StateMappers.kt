@@ -6,7 +6,7 @@ import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalUuidApi::class)
-internal fun CreateViewModel.UIState.toDLog(dateTimeProvider: DateTimeProvider): DLog {
+internal fun CreateViewModel.ModelState.toDLog(dateTimeProvider: DateTimeProvider): DLog {
     val id = Uuid.Companion.random().toString()
     return DLog(
         id = id,

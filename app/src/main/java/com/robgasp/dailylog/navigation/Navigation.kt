@@ -112,5 +112,5 @@ class TopLevelBackStack<T : NavKey>(startKey: T) {
 
 class NavigationViewModel : ViewModel() {
 
-    val topLevelBackStack: TopLevelBackStack<NavKey> = TopLevelBackStack(Logs)
+    val topLevelBackStack: TopLevelBackStack<NavKey> = TopLevelBackStack(Create)
 }
